@@ -1,0 +1,74 @@
+\section{Proof of Proposition \ref{proposition_compositional_policy_satisfaction}}
+\label{sec:proof_comp_policy}
+\noindent \textit{Informal Proof}: 
+The formula $\varphi$ is a compositional policy, i.e., a well-formed formula constructed inductively from simpler formulas $\{\varphi_1, \dots, \varphi_n\}$ using logical connectives (e.g., $\land$, $\lor$, $\lnot$, $\rightarrow$) and quantifiers (e.g., $\forall$, $\exists$). Each sub-formula $\varphi_i$ corresponds to a learned sub-model $M_i$, and the Boolean structure of $\varphi$ is implemented by \textit{Merge} blocks that simulate the appropriate logical operations.
+
+Assume that each $M_i$ approximates the behavior of the intended interpretation of $\varphi_i$, i.e., for a significant fraction of inputs $x \in \mathcal{X}_{\text{val}}$, the evaluation $M_i(x)$ satisfies $\varphi_i$ under interpretation $I$. Moreover, assume that each \textit{Merge} block implements the logical connective it represents correctly at the functional level (i.e., given Boolean values from sub-models, it outputs the correct result).
+
+Because $\varphi$ is constructed inductively from its sub-formulas, the satisfaction of $\varphi$ depends on the satisfaction of its components. The inductive structure of $\varphi$ ensures that if each constituent formula is satisfied with high probability, and the logical operations are correctly implemented, then $\varphi$ itself is satisfied with high probability.
+
+Therefore, over the validation set $\mathcal{X}_{\text{val}}$, we can count the number of inputs $x$ for which the overall model output $M_{\text{compositional}}(x)$ satisfies $\varphi$ under interpretation $I$. The ratio of such inputs to the total gives the empirical satisfaction level $P$, i.e.,
+\[
+P = \frac{|\{x \in \mathcal{X}_{\text{val}} \mid I \models \varphi(M_{\text{compositional}}(x)) \}|}{|\mathcal{X}_{\text{val}}|}.
+\]
+This completes the informal justification of the proposition. $\square$
+
+
+\section{Proof of Proposition \ref{propo1}}
+\label{sec:proof}
+
+Let $\sigma \in \Sigma^{\ast}$ denote the word received as input. Then, we let $E_{\varphi}^{out}(\sigma)$ denote the output of the enforcer.
+
+Let us prove this proposition using induction on the length of the input sequence $\sigma \in \Sigma^{\ast}$.\\
+
+\noindent \underline{Induction basis}. For the input $\epsilon$, all the models and the enforcer will not release any event as output i.e., for $\sigma = \epsilon$, $E_{\varphi}^{out}(\epsilon) = \epsilon$ and thus the proposition holds trivially for $\sigma = \epsilon$.\\
+
+\noindent \underline{Induction step}. Assume that for every $\sigma = x_1 \cdots x_k \in \Sigma^{\ast}$ of length $k \in \mathbb{N}$, the proposition holds. We now prove that for $\sigma \cdot x_{k+1}\in \Sigma^{\ast}$, the proposition holds. We consider two cases based on whether $\sigma \cdot x_{k+1}$ satisfies the property $\varphi$.
+
+\begin{enumerate}
+    \item \textbf{Case 1:} $\sigma \cdot x_{k+1} \models \varphi$. By transparency of $E_{\varphi}$, $E_{\varphi}^{out}(\sigma \cdot x_{k+1})= \sigma \cdot x_{k+1}$. Hence $E_{\varphi}^{out}(\sigma \cdot x_{k+1}) \models \varphi$. By Definition~\ref{constraints3}, inter-model consistency holds for all dependent models $M_i \rightarrow M_j$. For robustness, for any $M_i$ and any adversarial input $\sigma_{adv}$, whenever $M_i$ processes $\sigma_{adv}$ the enforcer output still satisfies $\varphi$ because the final sequence is already property-compliant and is passed through unchanged.
+    
+    \item \textbf{Case 2:} $\sigma \cdot x_{k+1} \not\models \varphi$. By soundness of $E_{\varphi}$, the enforcer replaces $x_{k+1}$ with some $x_{k+1}' \in edit_{\varphi}(\sigma, x_{k+1})$ and releases $E_{\varphi}^{out}(\sigma \cdot x_{k+1}) = \sigma \cdot x_{k+1}'$. By construction of $edit_{\varphi}$ (Definition in Section~\ref{sec:runtime_enforcement}), there exists an extension $\sigma_{\text{extn}}$ such that $\sigma \cdot x_{k+1}' \cdot \sigma_{\text{extn}} \models \varphi$; for the synthesised enforcer used in this thesis \cite{10.1145/3126500}, the released prefix satisfies the property, i.e.\ $E_{\varphi}^{out}(\sigma \cdot x_{k+1}) \models \varphi$.
+
+    Since $E_{\varphi}^{out}(\sigma \cdot x_{k+1}) \models \varphi$, Definition~\ref{constraints3} implies inter-model consistency: for every $M_j$ that depends on $M_i$, we have $M_i \sim M_j$. The enforcer is placed after the entire compositional pipeline, so corrections are applied only to the final control output presented to the actuators; internal module interfaces remain structurally unchanged because $x_{k+1}' \in \Sigma$ (same alphabet and valid domains as $x_{k+1}$). Thus dependent modules still receive compatible inputs and outputs in the sense of Definition~\ref{constraints3}.
+
+    For robustness, suppose some $M_i$ misbehaves on an adversarial input $\sigma_{adv}$ so that the composed system would violate $\varphi$. The enforcer still produces $E_{\varphi}^{out}$ with $E_{\varphi}^{out} \models \varphi$ by soundness, satisfying the robustness constraint in Definition~\ref{constraints3}.
+\end{enumerate}
+
+In both cases, $E_{\varphi}^{out}(\sigma \cdot x_{k+1}) \models \varphi$, and the inter-model consistency and robustness constraints hold. This completes the induction step and hence the proof. $\square$
+
+
+\section{Simulation set-up}
+\label{sec:simulation_setup}
+\noindent \textit{Set-up.} The simulation considers a three-lane roadway and operates with a time step ($\Delta t$) of 0.1 seconds as we believe this should be fast enough to make accurate decisions. We consider eight simulation durations, with the simulation duration varying linearly between 30 seconds and 480 seconds. The vehicle setup includes an ego vehicle positioned in the centre lane and six other vehicles distributed across adjacent lanes. The ego vehicle starts at the origin with an initial velocity of 20 m/s (desired velocity of 30 m/s) and occupies the centre lane. Surrounding vehicles are initialized with randomized positions and velocities to simulate a realistic driving environment. 
+%
+These vehicles are distributed across all three lanes, including vehicles in the same lane as the ego car and those in opposing and adjacent lanes. The randomized initial positions range from 2 to 100 meters from the ego car, while their velocities range from 5 to 30 m/s. Each vehicle is governed by an Intelligent Driver Model (IDM) for longitudinal control and a lane change model for lateral manoeuvres.\\
+% \saumya{screenshot} \sobhan{of?}
+
+\noindent \textit{Execution.} The execution of all the modules takes place in series every time instant. Each time instant, the car takes in the data from the car sensors and executes the LCD module, the LCE module, and the CF module and their respective enforcers in series with them. Then, the outputs of the enforcers are passed to the controller, which is then fed as set-points to the actuators of the car. This process repeats every time step. The simulation is run in Python, but the enforcers are developed in C using the easyRTE tool \footnote{https://github.com/PRETgroup/easy-rte}.
+\\
+
+\noindent \textit{Design-Space Exploration.} To explore multiple scenarios, combinations of initial conditions (initial positions, velocities, and accelerations of ego and surrounding cars) and simulation durations are created using a Cartesian product of random seeds and duration intervals. We use ten randomised repetitions of the simulation durations, 80 simulations in total. The eight simulations with different simulation durations are parallelized using Python's multiprocessing library, enabling efficient execution across multiple CPU cores. 
+% \saumya{initial conditions? is it initial positions and velocities?} \sobhan{added}
+
+As it may take a long time to observe undesired behaviour, we inject faults in the simulation to observe the behaviour of the AV  and whether the enforcer takes corrective action or not in the presence of faults. We inject the following faults in the simulation:
+
+\begin{itemize}
+    \item \textbf{Fault 1:} The LCD module outputs a lane change decision to the controller even when $P_{LCD} = 0$ is not met. This is introduced by setting the LCD output to 1 when $P_{LCD} = 0$ at multiples of time step 83, which is chosen randomly.
+    
+    \item \textbf{Fault 2:} The car following distance becomes lesser than 2 metres, i.e. the car rollowing property is violated. This is done by setting the gap to 1.99 metres at multiples of time step 89, which is chosen randomly.
+    
+    \item \textbf{Fault 3:} The LCE module takes longer than 5 seconds for a lane change, i.e. $P_{LCE}$ is violated. This is done by manually setting the lane change execution time to 5.04 seconds at multiples of time step 97, which is chosen randomly.
+\end{itemize}
+
+
+
+\section{Model Parameters}\label{sec:appendix_model_params}
+
+\textbf{ANN Models}: The ANN models use a four layer architecture with \{128, 64, 32, 3\} neurons in each layer of the monolithic model and \{64, 32, 16, 1\} neurons in each layer of the compositional models. We use \texttt{tanh} activation in all hidden layers. The output layer for the monolithic model uses a \texttt{softmax} activation and the compositional model uses a \texttt{sigmoid} activation.
+
+\textbf{Random Forest Model}: The model hyperparameters are set as follows: the number of trees in the forest (\texttt{n\_estimators}) is 100, with a maximum tree depth (\texttt{max\_depth}) of 6. The number of features considered for the best split (\texttt{max\_features}) is set to the square root of the total features. The minimum number of samples required to split an internal node (\texttt{min\_samples\_split}) is 2, while the minimum number of samples required at a leaf node (\texttt{min\_samples\_leaf}) is 1. 
+
+\textbf{Adaboost Model}: The model hyperparameters are set as follows: the number of trees in the forest (\texttt{n\_estimators}) is 100.
+
+\textbf{XGBoost Model}: The XGBoost model was configured with the following hyperparameters: \texttt{objective} set to \texttt{binary:logistic}, \texttt{eval\_metric} set to \texttt{logloss} and  \texttt{max\_depth} set to 6.

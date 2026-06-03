@@ -1,0 +1,215 @@
+\chapter{Compilation of ANN Designs to C}
+\label{chapter:appendix_3}
+\glsresetall
+
+\section{nn2C Compiler}
+Algorithms~\ref{alg:nn2c}, \ref{alg:parse-c}, \ref{alg:write-c}, and \ref{alg:generate-c} present the high-level pseudocode of the \emph{nn2C} compiler \footnote{The compiler can be imported in Python from https://test.pypi.org/simple/nn2c==2.1.6}.  
+The tool translates Artificial Neural Network (ANN) designs—single or multi-model—authored in TensorFlow/Keras or PyTorch into synthesizable, fixed-point C code.   An intermediate JSON representation (IR) captures both inter-model wiring and intra-model layer connectivity.\footnote{Supported activations: linear, tanh, sigmoid, exponential/softmax, ELU, ReLU in purely feed-forward MLP or CNN topologies.}
+
+\begin{algorithm}[htbp]
+    \caption{Compile TensorFlow/PyTorch Models to C}\label{alg:nn2c}
+    \begin{algorithmic}[1]
+    \Function{nn2C}{$models$, $conn$, $aParts$, $fname$, $outDir$, $verify$, $simSteps$}
+        \State $iRep \gets$ \Call{parse}{$models$, $conn$, $aParts$}
+            %\Comment{Build intermediate representation (IR).}
+        \State $cFiles \gets$ \Call{writeC}{$iRep$, $fname$, $outDir$, $verify$, $simSteps$}
+            %\Comment{Generate all \texttt{.c/.h} sources, Makefile, test benches.}
+        \State \Return $cFiles$
+            %\Comment{Paths to generated artefacts.}
+    \EndFunction
+    \end{algorithmic}
+\end{algorithm}
+
+The compiler proceeds in two main phases:
+
+\begin{enumerate}
+  \item \textbf{Model Parsing} (Alg.~\ref{alg:parse-c}): Builds the IR by extracting architecture, weights and piece-wise linear (PWL) activation tables.
+  \item \textbf{C Code Generation} (Algs.~\ref{alg:write-c}-\ref{alg:generate-c}): Emits C/\texttt{.h} sources, a fixed-point arithmetic library, Makefile, and optional SPIN verification harness.
+\end{enumerate}
+
+\section{Interface Algorithm}
+
+\begin{algorithm}[htbp]
+    \caption{Parse Models to Intermediate Representation}\label{alg:parse-c}
+    \begin{algorithmic}[1]
+    \Function{parse}{$models$, $conn$, $aParts$}
+        \State $iRep \gets \{\}$
+        \For{$model, mName$ \textbf{in} $models$}
+            \State $arch \gets$ \Call{getArch}{$model$}
+            \State $weights \gets$ \Call{getWeights}{$model$}
+            \State $acts \gets$ \Call{piecewiseActs}{$model$, $aParts$}
+            \State $layers \gets$ \Call{layerGraph}{$model$}
+            \State $iRep[mName] \gets$ \{\text{``arch"}: $arch$, \text{``weights"}: $weights$,%
+                   \text{``activations"}: $acts$,\text{``lConn"}: $layers$\}
+        \EndFor
+        \State $iRep[\text{``conn"}] \gets conn$
+            %\Comment{Store inter-model wiring.}
+        \State \Return $iRep$
+    \EndFunction
+    \end{algorithmic}
+\end{algorithm}
+
+Algorithm~\ref{alg:nn2c} orchestrates the whole flow:
+
+\begin{enumerate}
+  \item \textbf{Line 2}: \texttt{parse} converts the supplied models into the IR.
+  \item \textbf{Line 3}: \texttt{writeC} materialises every artefact required to build and simulate the generated network in C.
+  \item \textbf{Line 4}: The function returns paths to all generated files, enabling downstream integration or packaging.
+\end{enumerate}
+
+\begin{algorithm}[htbp]
+    \caption{Write C Source Files from Intermediate Representation}\label{alg:write-c}
+    \begin{algorithmic}[1]
+    \Function{writeC}{$iRep$, $fname$, $outDir$, $verify$, $simSteps$}
+        \State $mSrc \gets []$ %\Comment{Per-model \texttt{.c/.h}.}
+        \State $actSrc \gets []$ %\Comment{Piece-wise activation kernels.}
+        \For{$mName$ \textbf{in} $iRep$ \textbf{excluding} ``conn''}
+            \State $mIR \gets iRep[mName]$
+            \State $code \gets$ \Call{generateC}{$mIR$}
+            \State $act \gets$ \Call{genActC}{$mIR[\text{activations"}]$}
+            \State \textbf{append} $code$ \textbf{to} $mSrc$
+            \State \textbf{append} $act$ \textbf{to} $actSrc$
+        \EndFor
+        \State $lib \gets$ \Call{genFixedPointLib}{}
+        \State $mk  \gets$ \Call{genMakefile}{$fname$, $verify$}
+        \If{$verify$}
+            \State $verif \gets$ \Call{genVerification}{$fname$, $simSteps$}
+        \EndIf
+        \State \Return $[mSrc, actSrc, lib, mk, verif]$
+    \EndFunction
+    \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[htbp]
+    \caption{Generate C Artefacts}\label{alg:generate-c}
+    \begin{algorithmic}[1]
+    \Function{generateC}{$modelIR$}
+        \Comment{Emit model-specific \texttt{.c/.h} implementing fixed-point inference.}
+        \State \Return $modelCode$
+    \EndFunction
+    \Function{genActC}{$actPieces$}
+        \Comment{Emit lookup-table / piece-wise linear activations.}
+        \State \Return $actCode$
+    \EndFunction
+    \Function{genFixedPointLib}{}
+        \Comment{Create common arithmetic library (\texttt{CREATE\_FP}, \texttt{FP\_MULT}, \dots).}
+        \State \Return $libCode$
+    \EndFunction
+    \Function{genMakefile}{$projName$, $verify$}
+        \Comment{Makefile with build + optional SPIN verification targets.}
+        \State \Return $mkCode$
+    \EndFunction
+    \Function{genVerification}{$projName$, $simSteps$}
+        \Comment{Generate \texttt{main.c} harness and Promela model for SPIN.}
+        \State \Return $verifFiles$
+    \EndFunction
+    \end{algorithmic}
+\end{algorithm}
+
+The entry function \texttt{nn2C} expects:
+
+\begin{itemize}
+  \item \texttt{models}: list of models or \{\emph{arch, weights}\} pairs.
+  \item \texttt{conn}: list of inter-model connections in textual form (e.g., \texttt{``input[0:16]\,$\rightarrow$\,model\_L''}).
+  \item \texttt{aParts}: number of PWL segments for activation approximation (default~32).
+  \item \texttt{fname}: project base name; reused for the top-level C file and Make targets.
+  \item \texttt{outDir}: output directory for generated sources.
+  \item \texttt{verify}, \texttt{simSteps}: enable SPIN-based run-time verification and set simulation horizon.
+\end{itemize}
+
+\section{Model Parsing Algorithm}
+
+Algorithm~\ref{alg:parse-c} builds the IR as follows:
+
+\begin{enumerate}
+  \item \textbf{Line 3}: Initialises an empty container \texttt{iRep}.
+  \item \textbf{Lines 4-10}: For each model
+        \begin{itemize}
+          \item \textbf{Line 5}: \texttt{getArch} captures layer type, dimensions, activation.
+          \item \textbf{Line 6}: \texttt{getWeights} serialises parameters (dense weights, convolution kernels, biases).
+          \item \textbf{Line 7}: \texttt{piecewiseActs} generates PWL tables—the slopes and intercepts for each activation segment calculated via the analytic derivative at segment mid-points.
+          \item \textbf{Line 8}: \texttt{layerGraph} records directed edges between layers.
+        \end{itemize}
+  \item \textbf{Lines 11-12}: Stores the per-model description in \texttt{iRep}.
+  \item \textbf{Lines 13-14}: Adds global \texttt{conn} information for multi-model graphs.
+\end{enumerate}
+
+Framework detection is automatic: PyTorch graphs are traversed via \texttt{torch.jit.trace} and ONNX-like nodes; Keras models are parsed layer‐by‐layer.  
+The outcome is a unified, back-end-agnostic IR that feeds the code generator.
+
+\section{Compositional Model Parsing}
+
+When multiple sub-models form a composite ANN, the parser:
+
+\begin{enumerate}
+  \item Extracts each sub-model independently (Lines 4-10).
+  \item Writes inter-model edges (Line 13) so that later stages can route outputs of one model to inputs of another.
+  \item Maintains a single fixed-point format across all components, ensuring numerical consistency.
+\end{enumerate}
+
+This enables hierarchical designs such as ensembles, split inputs, or late-fusion networks.
+
+\section{C Code Generation Algorithm}
+
+Algorithm~\ref{alg:write-c} transforms the IR into compilable C:
+
+\begin{enumerate}
+  \item \textbf{Lines 3-4}: Allocate lists for per-model and activation sources.
+  \item \textbf{Lines 5-11}: For every model in the IR
+        \begin{itemize}
+          \item \textbf{Line 7}: \texttt{generateC} produces a pair of \texttt{.c/.h} files that implement inference with 16-bit fractional fixed-point numbers; neurons are time-multiplexed to save area.
+          \item \textbf{Line 8}: \texttt{genActC} emits LUT-based or linear-segment kernels for each activation present.
+        \end{itemize}
+  \item \textbf{Line 12}: \texttt{genFixedPointLib} supplies arithmetic helpers (\texttt{CREATE\_FP}, \texttt{FP\_MULT}, \texttt{FP\_DIV}, \texttt{argmax}).
+  \item \textbf{Line 13}: \texttt{genMakefile} wires everything into a build script; optional SPIN targets are added when \texttt{verify} is true.
+  \item \textbf{Lines 14-15}: If verification is requested, \texttt{genVerification} creates a Promela model, harness code, and appropriate assertions (e.g.\ accuracy thresholds).
+\end{enumerate}
+
+Algorithm~\ref{alg:generate-c} details the helpers:
+
+\begin{itemize}
+  \item \texttt{generateC}: Emits state structs for inputs, hidden and output neurons, plus two procedures—\texttt{\emph{Model}Init} (zeroing state) and \texttt{\emph{Model}Run} (one simulation step).
+  \item \texttt{genActC}: Converts each PWL table to an \texttt{int32\_t} fixed-point function with branch-less segments where possible.
+  \item \texttt{genMakefile}: Provides rules for library compilation, object generation, linking, and cleaning.
+  \item \texttt{genVerification}: Builds a C test-bench reading \texttt{test/input.txt} and a Promela script automatically sweeping an input noise range, asserting the desired number of correct predictions.
+\end{itemize}
+
+The generated project folder therefore contains:
+
+\begin{itemize}
+  \item Top-level \texttt{main.c} (or \texttt{verify/main.c}) calling the model.
+  \item Model-specific \texttt{.c/.h} files (\emph{one per sub-model} if compositional).
+  \item Activation kernels (\texttt{relu.c}, \texttt{tanh.c}, \dots).
+  \item Fixed-point arithmetic library (\texttt{library.c/h}).
+  \item Optional \texttt{result.c/h} for classification post-processing.
+  \item Makefile with build and simulation targets.
+\end{itemize}
+
+The C code is generated using the synchronous approach, as described in Section \ref{sec:hardware}. As this code does not require minimisation of hardware resources, we do not use the multicyclic approach. Instead, we use the pipelined layer-by-layer approach, where each layer is executed at a time in a pipeline. For example, if a model has 5 layers, the pipeline will take 5 ticks to produce the first output.
+
+A minimal usage example is shown in Listing~\ref{lst:usage_example_c}.
+
+\begin{lstlisting}[language=Python, caption=Python invocation of the nn2C compiler, label=lst:usage_example_c]
+from nn2C.nnParser import ToC
+from tensorflow.keras import layers, Model
+
+def build_mlp():
+    x_in  = layers.Input(shape=(16,))
+    x     = layers.Dense(16, activation='relu')(x_in)
+    x     = layers.Dense(8,  activation='relu')(x)
+    x_out = layers.Dense(4,  activation='softmax')(x)
+    return Model(x_in, x_out)
+
+net1 = build_mlp()
+net2 = build_mlp()
+
+ToC(models=[net1, net2],
+    model_names=["net_L", "net_R"],
+    connections=["input[0:16] -> net_L", "input[6:22] -> net_R"],
+    classes=[0,1,2],             # for optional result block
+    approx_parts=32,             # PWL granularity
+    fname="ensemble",            # base project name
+    result_block=True,
+    verify=True,                 # generate SPIN harness
+    simulation_steps=3)
+\end{lstlisting}

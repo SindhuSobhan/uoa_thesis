@@ -1,0 +1,106 @@
+\chapter{Introduction}\label{chapter:introduction}
+\glsresetall
+
+\section{Overview}
+
+\glspl{cps} are at the heart of modern safety-critical applications, from autonomous vehicles to medical devices. As these systems grow in complexity, data-driven approaches using \gls{ml}---particularly \glspl{ann}---have become indispensable for tasks such as perception, decision-making, and control, where traditional model-based design methods are no longer feasible~\cite{goodfellow_deep_2016}. However, the deployment of \gls{ml} models in safety-critical \glspl{cps} introduces a fundamental tension: while \gls{ml} models excel at learning complex, nonlinear input-output relationships from data, they are typically constructed as monolithic black-box systems that are difficult to verify, implement on hardware for timing analysis, and explain to stakeholders~\cite{yang_compositional_2020}.
+
+This monolithic design paradigm creates three interconnected problems. First, the formal verification of large monolithic \glspl{ann} is NP-Complete~\cite{katz_reluplex_2017}, making it computationally intractable for the network sizes required in real-world applications. This is compounded by the difficulty of implementing such networks on dedicated hardware platforms like \glspl{fpga} for formal \gls{wcet} analysis, where only networks of a few tens of neurons can be feasibly deployed~\cite{saric_fpga-based_2020, nguyen_efficient_2018}. Second, ensuring that \gls{ml}-based \glspl{cps} adhere to safety specifications remains an open challenge. Existing formal verification approaches, whether based on reachability analysis~\cite{ivanov_compositional_2021}, assume-guarantee reasoning~\cite{pasareanu_compositional_2018}, or abstraction techniques~\cite{gehr_ai2_2018}, struggle with the scale and nonlinearity of monolithic models. However, safety-critical applications demand rigorous guarantees that the system will never enter an unsafe state. Third, the lack of explainability in monolithic \gls{ml} models undermines trust and limits their adoption in high-stakes domains such as healthcare~\cite{molnar_interpretable_nodate}. While post-hoc explainability methods like \gls{shap}~\cite{lundberg_unified_2017} and LIME~\cite{ribeiro_why_2016} exist, their utility diminishes as model complexity and the number of input features grow, making it difficult to extract clinically or operationally meaningful insights.
+
+This thesis addresses these challenges through a unifying principle: \emph{compositionality}. \glspl{cps} are inherently compositional, typically comprising distributed controllers and hardware components that are designed, verified, and maintained modularly~\cite{alur_principles_2015, tripakis_compositionality_2016}. We argue that the \gls{ml} models embedded within these systems should be designed with the same compositional principles. By systematically decomposing monolithic \gls{ml} models into smaller, functionally equivalent sub-models, we can enable modular verification, facilitate hardware implementation for timing analysis, incorporate formal safety guarantees at every design stage, and provide more granular and actionable explanations.
+
+The key insight of this thesis is that compositionality is not merely a system-level architectural choice but can be applied at the \gls{ml} model level itself, yielding benefits across verification, safety, timing, and explainability simultaneously. We develop novel methodologies for decomposing monolithic \glspl{ann} into compositional architectures for both classification and regression tasks, design compilers that translate these compositional models to hardware (VHDL for \glspl{fpga}) and embedded software (C code), introduce a policy-driven framework that mines safety specifications from data and uses them to guide compositional model training with runtime enforcement, and propose a compositional explainability paradigm that combines multiple post-hoc techniques to provide insights at both the sub-model and system levels.
+
+We validate our framework through two comprehensive case studies: autonomous vehicle lane-changing (addressing safety and timing) and personalised mood score prediction for depression (addressing explainability). Through extensive evaluation, we demonstrate that compositional \gls{ann} models achieve up to 85\% reduction in \gls{wcet}, 53\% reduction in hardware resources, and 40\% reduction in computations, while maintaining comparable or better performance relative to monolithic approaches, with enhanced safety guarantees and explainability.
+
+
+\section{Research Questions}
+\label{sec:research_questions}
+
+The overarching goal of this thesis is to develop a compositional \gls{ml} framework for \glspl{cps} that addresses the challenges of verification, timing, safety, and explainability. This goal is pursued through five specific research questions, each targeting a distinct aspect of the problem.
+
+\begin{questions}
+\item \textbf{How can we decompose a monolithic ML model into a compositional model such that performance and functional behaviour are preserved?}
+\label{rq:decomposition}
+
+The central challenge here is to develop a principled methodology for replacing a single large \gls{ann} with multiple smaller sub-models that collectively reproduce the same input-output behaviour. For classification tasks, this means decomposing a multi-class classifier into independent binary classifiers---one per class---and then merging their outputs to recover the original classification. For regression tasks, this involves partitioning the feature space into clusters (e.g., using unsupervised methods such as k-means) and training a separate regression model for each cluster.
+
+Existing work on \gls{ann} decomposition has been limited. \cite{watanabe_modular_2017} and \cite{pan_decomposing_2020} decompose trained monolithic networks into smaller independent networks, but their focus is on modularity rather than reducing overall network size or enabling verification; the total number of parameters may even increase after decomposition. Model reduction approaches such as \cite{gokulanathan_simplifying_2020} and \cite{elboher_abstraction-based_2020} attempt to simplify networks through abstraction, but do not always produce simpler architectures and lack systematic, quantitative evaluation criteria. The key gap is the absence of a systematic, quantitatively evaluated methodology for decomposing monolithic \glspl{ann} that demonstrably reduces computational cost and resource requirements while preserving---or improving---task performance. This thesis addresses this gap for both classification and regression tasks across multiple real-world datasets.
+
+
+\item \textbf{How can we implement the compositional model on hardware for timing analysis using \gls{wcet}?}
+\label{rq:hardware}
+
+For time-critical \glspl{cps}, it is essential to guarantee that every computation completes within its deadline. Implementing \glspl{ann} on \gls{fpga} hardware enables formal \gls{wcet} analysis because the absence of caches, pipelines, and branch predictors yields fully deterministic, cycle-accurate behaviour~\cite{wilhelm_worst-case_2008}. However, existing \gls{fpga} compilation tools for \glspl{ann} (e.g., \cite{himavathi_feedforward_2007, nguyen_efficient_2018, saric_fpga-based_2020}) are tailored to monolithic architectures and support only small networks with limited activation functions. None supports compositional architectures where multiple sub-models execute in parallel under synchronous semantics.
+
+For example, consider an autonomous vehicle lane-change decision system implemented as a monolithic \gls{ann} on an \gls{fpga}. The entire network must execute sequentially, and the \gls{wcet} scales with the total number of neurons. In a compositional design, however, independent binary classifiers can execute in parallel on separate \gls{fpga} resources, potentially reducing the \gls{wcet} to that of the largest sub-model plus a small merging overhead. The research gap lies in the lack of general-purpose compilers that can translate compositional \gls{ann} architectures---developed in Python using frameworks like TensorFlow or PyTorch---to synthesisable \gls{vhdl} (or C code for embedded systems) with synchronous compositional semantics. This thesis develops such compilers and demonstrates their use for formal timing verification.
+
+
+\item \textbf{How can we ensure that the compositional model is safe by construction?}
+\label{rq:safe_construction}
+
+Safety-critical \glspl{cps} require not just post-hoc verification but safety guarantees that are designed into every stage of the \gls{ml} pipeline. This question asks how formal safety specifications can be integrated into the compositional model design and training process itself, so that the resulting system is safe by construction rather than by subsequent analysis.
+
+Consider an autonomous vehicle that must satisfy a safety policy such as ``do not initiate a lane change when the gap to the nearest vehicle in the target lane is below a threshold". In a monolithic design, such policies are difficult to encode into the training process because the model treats all inputs holistically. In a compositional design, however, we can decompose this high-level policy into sub-policies---each associated with a specific sub-model---and train each sub-model to satisfy its corresponding sub-policy. For instance, one sub-model might handle gap-acceptance decisions while another handles speed-matching, each with its own formally defined safety constraints.
+
+While existing works have explored policy mining~\cite{10.5555/1625015.1625078, panda_explainable_2024} and compositional verification~\cite{ivanov_compositional_2021, pasareanu_compositional_2018}, no existing methodology combines mined formal policies with compositional \gls{ml} model design to ensure policy compliance throughout the training and deployment pipeline. This thesis fills this gap by introducing a policy-driven framework that mines safety properties from data, decomposes them into sub-policies aligned with compositional sub-models, and uses these sub-policies to guide training.
+
+
+\item \textbf{How can we ensure that the compositional model adheres to safety specifications?}
+\label{rq:runtime_enforcement}
+
+Even with safe-by-construction training, learned models may encounter scenarios not represented in the training data, potentially leading to unsafe outputs. This question addresses the need for a runtime safety net that monitors model outputs and enforces compliance with safety specifications in real time.
+
+Runtime Enforcement (\gls{re}) provides a lightweight, dynamic approach to this problem: a formal monitor observes the system's outputs at runtime and, upon detecting an imminent policy violation, corrects the output before it reaches the actuators. For example, if a compositional lane-change model recommends a lane change but the runtime monitor determines that the safety gap constraint is violated, the monitor overrides the output to prevent the lane change. Several \gls{re} mechanisms have been proposed for general reactive systems~\cite{10.1145/353323.353382, 10.1007/s10207-004-0046-8, 10.1145/3092282.3092291, pearce_smart_2020}, but none has been applied to compositional \gls{ml} models. This thesis develops and demonstrates runtime enforcement specifically tailored to compositional \gls{ml}-based \glspl{cps}, using \glspl{vdta} as enforcement monitors.
+
+
+\item \textbf{How can we build compositional models that are explainable and provide actionable insights based on the model's explanations?}
+\label{rq:explainability}
+
+Explainability is essential for building trust in \gls{ml} models, particularly in domains like healthcare where practitioners need to understand \emph{why} a model produces a given prediction in order to act on it. Monolithic models that ingest large numbers of disparate features make it difficult to decompose model behaviour into meaningful explanations, because all features are entangled within a single model~\cite{byeon_advances_2023}. When such a model underperforms, it is challenging to isolate which group of features is responsible.
+
+A compositional approach offers a natural solution: each sub-model is associated with a semantically meaningful subset of features (e.g., activity-related features, sleep-related features, dietary features in a mood prediction model), enabling focused explanations at the sub-model level. For example, if a personalised mood prediction model decomposes into sub-models for activity, sleep, diet, and cognition, a clinician can examine the \gls{shap} values and \gls{ale} plots for each sub-model independently to understand which lifestyle domain most influences a patient's mood, and what specific changes within that domain might improve outcomes.
+
+While post-hoc explainability methods are well-established~\cite{lundberg_unified_2017, apley_visualizing_2019, ribeiro_anchors_2018}, their application has been limited to monolithic models, where they extract only the most influential features without providing structured, domain-aligned insights~\cite{byeon_advances_2023}. No existing work has explored how compositional \gls{ml} design can enhance explainability by enabling multi-level, multi-technique explanations aligned with meaningful feature groupings. This thesis introduces a compositional explainability paradigm that combines \gls{shap}, \gls{ale}, and Anchors at both the sub-model and system levels, demonstrating enhanced interpretability over monolithic approaches.
+
+\end{questions}
+
+
+\section{Contributions}
+
+In this work, we address the above questions by proposing a new paradigm for \gls{ml}-based \gls{cps} design that is compositional, explainable, and adheres to safety specifications. Such a framework not only has applications in the examples considered in this work but can be used in any similar \glspl{cps} using \gls{ml} models.
+
+\begin{enumerate}
+ \item \textbf{A method for decomposing a monolithic ML model into a compositional model:} This work develops a novel procedure to replace large ANN monolithic designs with smaller compositional designs and implement them on a Field Programmable Gate Array (FPGA) for timing analysis using synchronous compositional semantics. To illustrate our approach, we develop regression and classification ANN designs for multiple real-life datasets, including transportation and healthcare datasets.
+
+ \item \textbf{A compiler to compile ANN models in Python to VHDL code for timing verification:} One of the key requirements to test the WCET of an ANN-based CPS through hardware implementation is a compiler that compiles the ANN models developed in Python using Tensorflow or PyTorch to \gls{vhdl} code for FPGA hardware implementation. While several open-source compilers exist that can compile an ANN model to \gls{vhdl} code, they cannot work with the compositional architecture proposed in this work due to its synchronous compositional semantics. Hence, we designed a new compiler in Python (as a Python package) to produce \gls{vhdl} code from PyTorch and Tensorflow-Keras ANN models using synchronous compositional semantics.
+
+ \item \textbf{A compiler to compile ANN models in Python to C code for embedded system applications:} In tandem with the ANN to \gls{vhdl} compiler, we also developed an ANN to C code compiler to enable the use of the developed compositional ANN models in embedded system applications. Again, while several open-source compilers exist that can compile an ANN model to C code, they cannot work with the compositional architecture proposed in this work due to its synchronous compositional semantics. Hence, we designed a new compiler in Python (as a Python package) to produce C code from PyTorch and Tensorflow-Keras ANN models. We do not directly use the C code for the embedded system applications in this thesis and present it in Appendix \ref{chapter:appendix_3}.
+
+ \item \textbf{An approach to building safe-by-construction compositional designs:} In this work, we introduce a policy-driven framework for compositional ML-based CPS. Using an  \gls{av} as a representative case study, we show how to mine meaningful safety policies from data, and use these policies to decompose a monolithic ML model into composable sub-models and guide the training of each sub-model. To address unexpected or unseen scenarios where learned models may fail to comply with safety expectations, we employ a runtime enforcement mechanism that monitors model outputs and ensures policy adherence in real time. 
+
+\item \textbf{A method for building models that are explainable, focusing on compositional design:} We propose an explainable ML framework for both monolithic and compositional ML models and explore the approach on a safety-critical personalised mood score (depression scale) prediction case study - predicting the mood score of a patient based on their lifestyle factors. It is safety-critical as the model is used to guide clinical interventions. Our compositional approach builds models from separate sub-models aligned with clinical symptom groups (e.g., activity, diet, cognition) using a parallelised optimisation approach. Also, to explain model decisions, we develop a novel compositional explainability paradigm that applies \gls{shap}, \gls{ale} and Anchors rules to provide actionable insights for clinical interventions. A side effect of this work is that MLP models are found to be more performant than other baseline ML models.
+\end{enumerate}
+
+
+
+
+\section{Organisation of Thesis}
+
+The rest of this thesis is organised as follows:
+
+\begin{enumerate}
+ \item \textbf{Chapter \ref{chapter:background}:} This chapter provides the technical background necessary to understand the research presented in this thesis. It covers the fundamentals of \glspl{cps}, \gls{ml} (with a focus on \glspl{ann}), explainability techniques, and formal modelling. It also presents the principles of compositionality in model-based \gls{cps} design and summarises the use of data-driven \glspl{ann} in \glspl{cps}, including their limitations in verification and timing analysis.
+
+ \item \textbf{Chapter \ref{chapter:lit_review}:} This chapter reviews existing work directly related to the technical contributions of this thesis. It begins with compositional modelling for \gls{ml}-based \glspl{cps}, then covers \gls{fpga} hardware compilation, compositional verification and safety, explainability in compositional design, and the literature on the case studies considered in this work---autonomous vehicles and personalised mood score prediction for depression.
+
+ \item \textbf{Chapter \ref{chapter:compositional}:}  This chapter presents our first major contribution: a systematic methodology for decomposing monolithic ML models into compositional architectures and implementing them on hardware for timing analysis. We develop novel compilers that translate Python-based neural network models to both \gls{vhdl} (for FPGA implementation) and C code (for embedded systems), enabling formal \gls{wcet} analysis. This work addresses Research Questions 1 and 2, demonstrating how compositional models can be decomposed and implemented for timing verification.
+
+ \item \textbf{Chapter \ref{chapter:av}:} Building on the compositional framework discussed in Chapter \ref{chapter:compositional}, this chapter introduces our policy-driven approach for building safe-by-construction ML-based \gls{cps}. Using  \gls{av} lane-changing as a case study, we demonstrate how safety policies can be mined from data and used to design and train compositional sub-models. We also present runtime enforcement mechanisms that ensure policy adherence in real-time, addressing Research Questions 3 and 4 regarding safety guarantees and verification.
+
+ \item \textbf{Chapter \ref{chapter:depression}:} This chapter takes inspiration from the compositional framework discussed in Chapter \ref{chapter:compositional} to show how compositionality can aid in building more explainable ML models, addressing Research Question 5. Particularly, we develop a novel compositional explainability paradigm that combines SHAP, ALE, and Anchors techniques to provide actionable insights at both the sub-model and system levels. Using a personalised mood score prediction case study, we demonstrate how compositional models can offer enhanced explainability compared to monolithic approaches.
+
+ \item \textbf{Chapter \ref{chapter:conclusion}:} This final chapter summarises the contributions made throughout the thesis. We reflect on the implications of our work for the broader field of \gls{ml}-based \glspl{cps} and outline promising directions for future research, including extensions to other domains and integration with emerging technologies.
+\end{enumerate}
+
+

@@ -1,0 +1,63 @@
+
+\section{LCD Module Training}
+We demonstrate the use of the aforementioned policy-based training algorithm to train the models in the Lane Change Decision (LCD) module of the autonomous vehicle. We develop a compositional LCD module consisting of multiple ANN models and also a monolithic LCD module for comparative analysis. Both module designs are trained on data using the policy-based training algorithm. Moreover, we also develop both compositional and monolithic LCD modules that are trained using a standard supervised learning approach without the policy-based training for further comparative examination. 
+
+
+\textbf{\underline{Compositional LCD Module}}:
+
+The LCD module used in this work is a compositional module with several ANN models connected together. Each model in the compositional LCD module is trained on the data satisfying the overall safety property ($P_{LCD}$) separately. The safety property is obtained by mining the individual components of the safety property using the algorithm described in the previous section. The safety policies are of the following form:
+\begin{equation}
+    safe\_gap > constant + rel\_vel*coefficient_1 +rel\_acc*coefficient_2^2
+    \label{eq:uniform_motion}
+\end{equation}
+
+For instance, $P_{LF}: rfx > x0 + x1*rfxVelocity + x2*rfxAcceleration$, where $rfx$ is the right front car position, $rfxVelocity$ is the right front car velocity, $rfxAcceleration$ is the right front car acceleration, and $x0$ (intercept), $x1$ and $x2$ are the coefficients to be learnt/optimised. 
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{sections/AV/fig/newplot.png}
+    \caption{Optimisation Planes for the LCD module Property $P_{RF}$}
+    \label{fig:lcd_training_plane}
+\end{figure}
+
+The values of the position, velocity and acceleration are obtained from the HighD dataset. We extract datapoints from lane changing and not lane changing vehicles alike. For lane changing vehicles we take the points from a 2 second period around the time when the lane change begins it normally takes 1-2 seconds for a human to gauge the surrounding conditions making a decision to lane change. We gather 2 second regions from not lane changing cars as well as examples of conditions where the car should not decide to lane change. This gives us a total of 28 features - 4 for the ego car, and 4 each for the six surrounding cars. These features include the relative position, velocity, and acceleration of the surrounding cars with respect to the ego car and the ego car's own velocities, acceleration and maximum velocity (used as a substitute for desired velocity). 
+
+These extracted datapoints are used as the data to mine the properties for the models. Figure \ref{fig:lcd_training_plane} shows the optimisation planes for the property $P_{RF}$. The blue plane shows the plane obtained by Ordinary Least Squares. This is then optimised to the green plane using the BFGS algorithm. The green plane is the plane for which 90\% of the datapoints satisfy $P_{RF}$. As all the datapoints are from safe lane changes from real cars, the goal is ensure that most points (at least 90\%) are above the plane. 
+
+The data satisfying the mined property ($ P_{LCD} = ((P_{LF} \land P_{LP}) \lor (P_{RF} \land P_{RP})) \land (P_{F} \land P_{P}) $) are labelled 1 or lane change datapoints and the ones that do not satisfy the property from the no lane change samples are labelled 0 or no lane change datapoints (any points far away from the lane change points are chosen as the no lane change [unsafe lane change] samples). 
+
+We also experiment with different target satisfaction percentages ($\mathcal{T}$) to obtain the property-satisfying dataset. We experiment with 70\%, 80\%, 90\% and also consider the case where we just use the coefficients obtained after the OLS step in Algorithm \ref{alg:compositional_training} (i.e. we stop at the blue plane in Figure \ref{fig:lcd_training_plane}). The number of datapoints obtained for each case is shown in Table \ref{tab:datapoints}. We do not try 100\% threshold as that leaves very few datapoints for the no lane change class. 
+
+\begin{table}
+    \centering
+    \caption{Number of datapoints obtained for each satisfaction percentage}
+    \begin{tabular}{|p{3cm}|p{3cm}|p{3cm}|p{3cm}|}
+    \hline
+    Property Satisfaction & Left LC Datapoints & Right LC Datapoints & No LC Datapoints \\
+    \hline
+    90\% & 69,422 & 61,342 & 43,667 \\
+    80\% & 45,998 & 49,866 & 122,521 \\
+    70\% & 42,484 & 40,514 & 128,662 \\
+    OLS & 11,178 & 3,561 & 314,750 \\
+    No Policy & 86,940 & 78,133 & 165,073 \\
+    \hline
+    \end{tabular}
+    \label{tab:datapoints}
+\end{table}
+
+All compositional ANN models designed for the LCD module have the same 4-layer architecture with 64, 32, 16, 1 neurons in the layers from inputs to output. Once we divide the 28 input features across the 3 models in the compositonal LCD module, we get 20 features each for the left and right lane change decision models, and 12 features for the opportunity model. 
+
+Furthermore, the merge blocks are designed such that they help satisfy the combination of indiviual properties in agreement with the combined lane change property $P_{LC}$. The first merge block simply takes the maximum of the two model outputs ensuring that only one of the two models outputs passed through (an $Or$ operation). The second merge block takes the output of the first merge block and the output of the opportunity model and merge them using an $And$ operation. This ensures that the lane change is only executed when both the safety and opportunity conditions are satisfied. The model performance (accuracy) reported is the accuracy of the whole module obtained by checking the outputs of the second merge block with the actual outputs. 
+
+Also, all layers use \emph{tanh} as the activation function for all hidden layers. The output layer uses sigmoid as the activation function. We use Adam optimiser with Binary Crossentropy as the loss function. The models are trained using the 5-fold cross validation approach for 200 epochs with a batch size of 128 using Tensorflow in Python. The data is oversampled to handle the imbalance (see Table \ref{tab:datapoints}), but the oversampling is done only on the training data and not on the test data. 
+
+The other LCD module is trained using the same architecture and optimisation parameters on the whole dataset without property-driven filtering for comparison (\emph{No Policy} in Table \ref{tab:datapoints}). We do, however, ensure that the test data from the filtered property-satisfying dataset is not used for training the normal supervised learning model for accurate comparison.
+
+
+
+\textbf{\underline{Monolithic LCD Module}}:
+
+The monolithic LCD module is a single ANN model with 28 input features and 3 outputs. The model has a 4-layer architecture with 128, 64, 32, 3 neurons in the layers from input to output. The model uses \emph{tanh} as the activation function for all hidden layers and \emph{softmax} as the activation function for the output layer. The model is trained for the same set of datasets as mentioned in Table \ref{tab:datapoints} and use the same optimisation parameters as the compositional models. 
+
+
+

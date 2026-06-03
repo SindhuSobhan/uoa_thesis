@@ -1,0 +1,237 @@
+\documentclass[a4paper,12pt,numbered,print,twoside]{uathesis}
+\usepackage{graphicx}
+\usepackage{algorithm}
+\usepackage{geometry}
+\usepackage{float}
+\geometry{a4paper, margin=1in}
+%\usepackage{algorithmic}
+\usepackage{cmap}
+\usepackage{wrapfig}
+\usepackage{algpseudocode}
+\usepackage{amssymb}
+\usepackage{moreverb}
+\usepackage{setspace}
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{adjustbox}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{longtable}
+% \usepackage{changepage}
+\usepackage{tabularray}
+\usepackage{multicol}
+% \usepackage{caption}
+\usepackage{listings}
+\usepackage{subcaption}
+\usepackage{tabularx}
+\usepackage[inline]{enumitem}
+\usepackage[table,usenames,dvipsnames]{xcolor}
+\usepackage{cleveref}
+\usepackage{rotating}
+\usepackage{makecell}
+\usepackage[acronym]{glossaries}
+\usepackage{glossary-mcols}
+
+% Set glossary style for consistent acronym spacing
+\setglossarystyle{long}
+\renewenvironment{theglossary}%
+  {\begin{longtable}{@{}p{2cm}@{\hspace{1em}}p{\dimexpr\linewidth-3cm\relax}@{}}}%
+  {\end{longtable}}
+\usepackage{blindtext}
+\usepackage{import}
+\usepackage{tikz}
+\usetikzlibrary{automata,arrows,positioning,shapes,arrows.meta,shapes.arrows}
+\usetikzlibrary{calc}
+
+\usepackage[normalem]{ulem}
+
+\usepackage{amsthm}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}{Lemma}[section]
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+\newtheorem{example}{Example}
+
+\newtheorem{proposition}{Proposition}
+
+\usepackage{textcomp}
+\usepackage{lscape}
+\usepackage{ragged2e}
+
+\renewcommand*{\glspostdescription}{} % Removes dots at the end of each entry.
+
+\renewcommand{\glossarypreamble}{\vspace*{-1em}}
+
+\usepackage[Lenny]{fncychap}
+\ChNameVar{\fontsize{18}{20}\usefont{OT1}{ptm}{m}{n}\selectfont}
+% \ChNumVar{\huge\bfseries\fontfamily{ptm}\selectfont}
+\ChTitleVar{\huge\bfseries\fontfamily{ptm}\selectfont}
+
+\usepackage{titlesec}
+% \titleformat{\section}{\large\scshape}{\thesection}{1em}{}
+% \titleformat{\subsection}{\normalsize\scshape}{\thesubsection}{1em}{}
+% \titleformat{\subsubsection}{\normalsize\scshape}{}{0.5em}{}
+
+
+\newtheorem{definition}{Definition}
+\newcolumntype{Y}{>{\centering\arraybackslash}X}
+% some settings to fill pages more densely
+\renewcommand\floatpagefraction{.9}
+\renewcommand\topfraction{.9}
+\renewcommand\bottomfraction{.9}
+\renewcommand\textfraction{.1}
+\setcounter{totalnumber}{50}
+\setcounter{topnumber}{50}
+\setcounter{bottomnumber}{50}
+
+\definecolor{light-gray}{gray}{0.95}
+\newcommand{\code}[1]{\colorbox{light-gray}{\texttt{#1}}}
+
+\newlist{questions}{enumerate}{2}
+\setlist[questions,1]{label=\textit{RQ\arabic*.},ref=\textit{RQ\arabic*}}
+\setlist[questions,2]{label=(\alph*),ref=\thequestionsi(\alph*)}
+
+\renewcommand{\figurename}{Figure}
+
+\makeglossaries
+\loadglsentries{glossary}
+
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue}\bfseries,
+    commentstyle=\color{green!60!black}\itshape,
+    stringstyle=\color{red},
+    numberstyle=\tiny\color{gray},
+    numbers=left,
+    numberfirstline=true,
+    firstnumber=1,
+    stepnumber=1,
+    numbersep=5pt,
+    frame=single,
+    framerule=0.4pt,
+    framesep=3pt,
+    rulecolor=\color{black},
+    backgroundcolor=\color{gray!10},
+    breaklines=true,
+    breakatwhitespace=true,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=4,
+    captionpos=b,
+    linewidth=\textwidth,
+    xleftmargin=0pt,
+    xrightmargin=0pt
+}
+
+
+\begin{document}
+\title{Compositional Machine Learning for Time-Verifiable, Safe, and Explainable Cyber-Physical Systems}
+\author{Sobhan Chatterjee}
+\subjectarea{Electrical and Electronic Engineering}
+\dept{Department of Electrical, Computer, and Systems Engineering}
+\supervisor{Partha Roop\par
+Nitish Patel\par}
+\crest{\includegraphics[width=0.2\textwidth]{University_of_Auckland_Coat_of_Arms.png}}
+\degreetitle{Doctor of Philosophy}
+\degreedate{2025} 
+\university{The University of Auckland}
+
+\maketitle
+
+\frontmatter
+\begin{abstract}
+  The integration of \gls{ml} into safety-critical \glspl{cps} presents a fundamental challenge: how to leverage the performance benefits of \gls{ml} while ensuring the rigorous safety, timing, and explainability requirements of critical applications. Traditional monolithic machine learning approaches create black-box systems that are difficult to verify, implement on hardware for timing analysis, and explain to stakeholders. This thesis addresses these challenges by introducing a novel paradigm of compositional machine learning that builds \gls{ml}-based \glspl{cps}  that are safe, time-verifiable, and explainable by construction.
+
+  In this thesis, we introduce the systematic decomposition of monolithic models into smaller models. This decomposition preserves functional behaviour while enabling parallel execution and modular verification. We develop novel compilation frameworks that translate Python-based \gls{ann} models to both VHDL (for \gls{fpga} implementation) and C code (for embedded systems), enabling \gls{wcet} analysis. Our compilers specifically support compositional \gls{ann} architectures, addressing a critical gap in existing tools. Moreover, we introduce a policy-driven framework for safe-by-construction \gls{ml} systems that mines safety properties from data and uses them to guide the training of compositional models. Additionally, our runtime enforcement mechanism ensures policy adherence in real-time, providing a safety net for unexpected scenarios. Finally, we develop a novel compositional explainability paradigm combining multiple explainability techniques to provide actionable insights at sub-model and system levels.
+  
+  We validate our framework through comprehensive case studies in autonomous vehicles and healthcare, demonstrating generalisability, practical applicability and concrete benefits. Through extensive evaluation, we demonstrate that compositional \gls{ann} models can achieve up to 85\% reduction in WCET, 53\% reduction in hardware resources, and 40\% reduction in computations while maintaining comparable performance to monolithic approaches. Furthermore, we illustrate how a compositional policy-mining approach helps obtain \gls{ml} models that are safer than their monolithic counterparts. Finally, we also show how compositional \gls{ml} models are inherently more explainable than monolithic models. Overall, the results establish that compositionality enables the development of \gls{ml}-based \glspl{cps} that are not only more performant but also more verifiable, implementable, and trustworthy.
+
+\end{abstract}
+
+\begin{acknowledgements}
+  Ancient wisdom says, ``A journey of a thousand miles begins with a single step", and I could not help but feel the same when I started my PhD during the first wave of the pandemic. I knew I had set out on a path, but I had no idea where it would lead and how long the path lay ahead. During this journey, which interestingly has taken a sixth of my current life (alas! you can compute my age now), I have met some amazing people, and this acknowledgement goes only a short way to express my gratitude.
+
+  I want to begin by expressing my deepest gratitude to my supervisors, Prof. Partha Roop and Dr. Nitish Patel, for their invaluable guidance, support, and mentorship throughout this research journey, especially during the uncertain COVID-19 years. Their expertise, patience, and encouragement have been instrumental in shaping my research. To you, Partha, I will fondly remember you as the purveyor and personification of your favourite quote: ``In research, we stand on the shoulders of giants". Thanks for all your help and for believing in me.
+  
+  A big thanks to all my colleagues in the PRETzel research group, especially to Nathan Allen, Alex Baird and Hammond Pearce, who finished their PhD before me and whose help and research laid the groundwork for my work. I also want to thank Moon Kim, Pengqian Han, Luman Wang, Logan Kenwright, Chuanshang Yin, Henry Liu, Jonathan King, the P4P students and others for their support, advice, collaboration and the light moments we shared. You all kept me going during this journey.
+  
+  A special thanks to Frederick Sundram for his invaluable clinical insights during the depression case study. I would also like to express my gratitude to Jyoti Mishra for providing the dataset for the case study.
+  
+  I would be remiss if I did not express my profound thanks to Aron Jeremiah, Ahmed Faiz, Saumya Shankar and Jerry Jacob for being the wonderful combination of a colleague, a friend and a flatmate. Our discussions on esoteric research, debates on abstruse topics, and banter over frivolous ideas made my PhD much more enjoyable and manageable.
+  
+  Lastly, I am immensely thankful to my family for their continued support and belief in me throughout this journey. To my parents, my brother and grandparents, I could not express enough how much your love and support mean to me. Without our conversations, I would have struggled to make it this far in my life so far from home.
+  
+  
+
+\begin{flushright}
+\textit{Sobhan Chatterjee}\\
+\end{flushright}
+\end{acknowledgements}
+
+\onehalfspacing
+\setcounter{tocdepth}{4}
+\setcounter{secnumdepth}{4}
+\tableofcontents
+\addtocontents{toc}{\vspace{-4em}}
+\listoffigures
+\addtocontents{lof}{\vspace{-4em}}
+\listoftables
+\addtocontents{lot}{\vspace{-4em}}
+\addcontentsline{toc}{chapter}{List of Acronyms}
+\printglossary[type=\acronymtype, nonumberlist, title={List of Acronyms}]
+
+\mainmatter
+\clearpage
+
+
+\import{sections}{Introduction.tex}
+
+\import{sections}{Background.tex}
+
+\import{sections}{LitReview.tex}
+
+\import{sections}{Compositional.tex}
+
+
+
+\import{sections}{AV.tex}
+
+
+\import{sections}{Depression.tex}
+
+
+\import{sections}{Conclusion.tex}
+
+
+
+
+
+
+
+
+
+\begin{appendices}
+\import{sections}{Appendix1.tex}
+
+\import{sections}{Appendix2.tex}
+
+\import{sections}{Appendix3.tex}
+\end{appendices}
+
+\backmatter
+
+
+
+
+
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+
+\end{document}

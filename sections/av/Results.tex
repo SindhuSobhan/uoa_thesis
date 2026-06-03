@@ -1,0 +1,120 @@
+\section{Results}
+\label{sec:av_results}
+Once we obtain the coefficients for our mined properties and have the trained models and enforcers, we implement them in a Python simulation that mimics the ego/subject AV driving on a freeway. The results of the compositional training and the simulation are presented in this section.
+
+
+\subsection{Compositional Property Mining}
+
+As mentioned, we experiment with various threshold levels for property satisfaction to obtain our policies and models for the LCD module. We obtain different sets of policies for each threshold level. Equation \ref{eq:lcd_policies} presents the mined policies for the best performing model in the simulations (i.e. threshold with the least number of faults).
+
+\begin{equation}
+\begin{aligned}
+P_{LF}: lfX > 80.77 + 11.23*lfXVelocity + 9.72*lfXAcceleration\\
+P_{LB}: lpX < -18.13  -2.82*lpXVelocity  -2.65*lpXAcceleration\\
+P_{RF}: rfX > 16.00  -3.21*rfXVelocity -1.51*rfXAcceleration\\
+P_{RB}: rpX < -35.91 + 4.20*rpXVelocity -1.89*rpXAcceleration\\
+P_{F}: fX > 0.45 + 31.14*fXVelocity -12.59*fXAcceleration\\
+P_{B}: pX < -22.73  -1.01*pXVelocity + 4.52*pXAcceleration\\
+\end{aligned}
+\label{eq:lcd_policies}
+\end{equation}
+
+The given equations define conditions for positional properties (gaps) of a vehicle in relation to velocity and acceleration components for various directional states: Left Front (LF), Left Rear (LP), Right Front (RF), Right Rear (RP), Front (F), and Rear (P). These properties are then used to obtain $P_{LCD}$ which is used by the LCD module enforcer to ensure that a lane change occurs only when adequate gaps are present between the cars. 
+
+We can observe in Equation \ref{eq:lcd_policies} that half the policies have a greater than sign and half have a less than sign. This is because the relative positions of the cars are considered in the policies and the sign of the gap changes based on the position of the car relative to the subject vehicle (i.e., car - subject car). This also explains why the front car policies have positive intercepts (the first coefficient term) and the rear/back car policies have negative intercepts. Also, we can glean from the properties that the cars on average need more space on the front left owing to the large positive coefficients of $P_{LF}$. Other properties also show a similar behaviour.
+
+
+\subsection{LCD Model Performance}
+
+\textbf{\underline{Compositional LCD Model:}}\\ 
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{|p{4cm}|p{4cm}|p{4cm}|}
+    \hline
+    Property Satisfaction Threshold (in \%)  & Compositional Mean Test Accuracy (in \%) &  Monolithic Mean Test Accuracy (in \%) \\
+    \hline
+        90 & 82.96 & 87.16 \\
+        80 & 89.23 & 91.71 \\
+        70 & 89.64 & 92.00 \\
+        OLS & 97.57 & 98.69\\
+        No Policy & 66.79 & 71.92\\
+    \hline
+    \end{tabular}
+    \caption{Mean accuracies of the various LCD models identified by their satisfaction percentage threshold. }
+    \label{tab:performance}
+\end{table}
+
+Table \ref{tab:performance} shows the performance of all the LCD models. The first column in the table shows the LCD modules by the percentage satisfaction of $P_{LCD}$. \emph{OLS} is the model with no optimisation and using the initial coefficients obtained by Ordinary Least Squares during the first step of the optimisation algorithm. \emph{No Policy} model refers to the model trained normally without knowledge of the properties. The second column shows the mean percentage accuracy on the corresponding highD test dataset calculated over the five folds of the 5-fold cross-validation approach.
+
+We can see from the table that it is easier for the model to learn to satisfy $P_{LCD}$ if some form of the algorithm is used. Also, lower satisfaction percentages during the property mining stage yield higher accuracy of satisfaction post-training. This is expected as we notice that the number of property satisfying datapoints for training decrease as we decrease the threshold for property satisfaction. This creates a higher imbalance between the no lane change and lane change samples, making it easier for the model to learn the majority class and increasing accuracy.
+
+
+\textbf{\underline{Monolithic LCD Model:}}\\ 
+
+From Table \ref{tab:performance}, we can see that the monolithic models are better at predicting correct lane changes from the highD dataset than the compositional models. As with the compositional models, the model performance increases as we decrease the threshold for property satisfaction. Nevertheless, the No Policy model has the lowest accuracy in both cases as it is the most balanced dataset (see Table \ref{tab:datapoints}) and this makes it difficult to learn from the real-life and complex highD dataset.
+
+
+
+\subsection{Enforcer Results: with compositional LCD module}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{/Users/sobhanchatterjee/Desktop/PAPERS/Papers/UoA Thesis/sections/av/fig/simulation_results_time_best.pdf}
+    \caption{Mean Time taken by various modules in a single time step. The top plot corresponds to the system with LCD model built at 70\% threshold, and the bottom plot corresponds to the case where no property is used to train the model.}
+    \label{fig:sim_time}
+\end{figure}
+
+
+Figure \ref{fig:sim_time} shows how long each module takes to execute in every time step and how this execution time changes with increasing simulation time for the case where the LCD module threshold is set to 70\%. The time reported by the bar plots is the mean time calculated across the ten repetitions. The line plots with the errorbars show the deviation from the mean. 
+
+We can see that the LCD module takes the longest time to execute as the ANN model is mathematically complex and needs a longer time to compute an output. It is interesting that this time exceeds the time it takes for Python to run the compiled enforcer files implemented in C. We do not report the time taken for other modules (LCE and CF) as these modules are stateful, and it would be difficult to choose an arbitrary time instant to capture the execution time. 
+
+Although we see some variability in the execution time for LCD, there is no overall trend across the simulation durations, and the time required to run the enforcers is almost constant throughout. Nevertheless, we can see that the model trained on property (top plot) has a higher execution time than the one not trained on properties (bottom plots). The difference is negligible and could be caused either due to numerical artefacts or due to a simpler numerical structure of the LCD module. The enforcer times remain similar across the two plots.
+
+
+\begin{figure*}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{/Users/sobhanchatterjee/Desktop/PAPERS/Papers/UoA Thesis/sections/av/fig/simulation_results_enforcer_combined.pdf}
+    \caption{Enforcer activation results for all thresholds considered for the LCD module.}
+    \label{fig:sim_enforcer_combined}
+\end{figure*}
+
+Figure \ref{fig:sim_enforcer_combined} shows the enforcer activations for all the thresholds considered for the LCD module. It shows the number of times the enforcer was activated (averaged across the ten repetitions), either due to faults injected artificially by the simulation or due to incorrect behaviour by the model. 
+
+We can see from the figure that the CF and LCE modules do not produce any runtime faults, and the only faults their corresponding enforcers enforce are the injected faults. As these modules are not trained on property, we do not see any difference between the system with LCD module trained on property and the one where it is not. The LCD module, which is composed of ANN models, produced a lot of runtime faults that activated the LCD enforcer. The number of such faults was constant throughout the various simulation durations tried for the module trained on property. 
+
+In contrast, the runtime faults increase exponentially for the LCD module not trained using the property. Also, we see that the number of enforcer activations increases linearly with the linear increase in injected faults for all modules except for the LCD module not trained on property. 
+
+We can also see that the number of enforcer activations is low for thresholds 70\%, 80\% and OLS, whereas it is substantially higher for 90\% and No Policy modules.  This suggests that there is a trade-off between the number of enforcer activations and the property satisfaction threshold. In particular, it can be seen that too high of a threshold and too low of a threshold (No Policy threshold) can lead to more enforcer activations indicating that the model overfits to the training data and cannot generalise well if the threshold is too high or too low. 
+
+Overall, The 70\% threshold seems to be the best trade-off between the number of enforcer activations and the property satisfaction threshold in our case. Moroever, in every instance where an enforcer was activated, the fault was handled and the car was observed to be safe.
+
+
+
+
+
+\subsection{Enforcer Results: Comparison with monolithic LCD module}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{/Users/sobhanchatterjee/Desktop/PAPERS/Papers/UoA Thesis/sections/av/fig/simulation_results_time_best_mon.pdf}
+    \caption{Mean Time taken by various modules in a single time step. The top plot corresponds to the model built on 70\% $P_{LCD}$ satisfaction, and the bottom plot corresponds to the case where no property is used to train the model.}
+    \label{fig:sim_time_mon}
+\end{figure}
+
+Figure \ref{fig:sim_time} shows how long each module takes to execute in every time step and how this execution time changes with increasing simulation time for the case where the LCD module is a monolithic model. The trend is similar to the compositional LCD module and the enforcer execution times are almost constant throughout the simulation duration. Nevertheless, the monolithic LCD module takes less time to execute than the compositional LCD module. This is expected as the monolithic model is a single model whereas the compositional model is a combination of three models spread across three subsequent stages.
+
+
+\begin{figure*}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{/Users/sobhanchatterjee/Desktop/PAPERS/Papers/UoA Thesis/sections/av/fig/simulation_results_enforcer_combined_mon.pdf}
+    \caption{Enforcer activation results. The left column is from the simulation with LCD model built on 70\% $P_{LCD}$ satisfaction and the right column is from the simulation with LCD model not trained on property.}
+    \label{fig:sim_enforcer_combined_mon}
+\end{figure*}
+
+Figure \ref{fig:sim_enforcer_combined_mon} shows the enforcer activations for all the thresholds considered for the monolithic LCD module. While the enforcement activation for the CF and LCE modules is the same as the compositional model, as there were no runtime faults, the LCD module behaviour is significantly different. The number of runtime enforcer activations is much higher for the monolithic LCD module than the compositional module, in general. 
+
+Particularly, the runtime faults for the monolithic model are an order of magnitude higher than all property-trained compositional modules. In contrast to the compositional module, the runtime faults in the monolithic model is higher for the model trained on property than the one not trained on property. Also, the runtime faults increase with simulation time, exponentially in the case the model is trained on property. It appears that the monolithic model overfits to the training data a lot more and fails to properly generalise when exposed to data from realistic simulations.
+
+These results suggest that the compositional models are better suited for the compositional policy enforcement discussed in this chapter, even though they take slightly more time to execute than the monolithic simulation. Overall, the compositional models trained on property seem better suited for the AV case study.
+
+

@@ -1,0 +1,151 @@
+\section{Policy-based Compositional Training}
+\label{sec:av_compositional_training}
+
+We develop a novel compositional policy mining and training technique to train the ANN models. The algorithm provides a systematic approach to ensuring that models, particularly in safety-critical applications like autonomous driving, satisfy desired properties with certain accuracy. Note that although the technique presented discusses compositional policies and models, the algorithm is model agnostic and can be modified easily to accommodate monolithic (single) properties and models. 
+
+By leveraging Ordinary Least Squares for initial coefficient estimation and BFGS for optimization, the approach ensures that the model parameters align with safety requirements, while the filtering and model merging steps guarantee that~ the final system adheres to the overall safety properties. As both the objective function and the optimisation function (MSE) are both convex functions, the whole optimisation is convex. However, as we are stopping early, there is a good possibility of the solution being non-optimal. We stop early to ensure that the properties obtained do not overfit to the data.
+
+To elaborate, the algorithm is divided into two parts: initialization and optimization, and filtering and training. The initialization and optimization part focuses on optimizing the coefficients of the models to satisfy the safety properties. The filtering and training part focuses on filtering the data based on the satisfaction of the safety properties and training the models on the filtered data. The algorithm ensures that the models satisfy the safety properties and maximize the Accuracy of the system. The algorithm is outlined in Algorithms \ref{alg:compositional_training} and \ref{alg:compositional_training_2}. Following is a detailed explanation of each step in the algorithm.
+
+
+\begin{algorithm}[htbp]
+   
+    \caption{Property-Based Training with Convex Optimization (Part 1: Initialization and Optimization)}
+    \begin{algorithmic}[1]
+    \State \textbf{Input:} Dataset $\mathcal{D} = \{(\mathbf{X}_i, y_i)\}_{i=1}^N$, where $\mathbf{X}_i$ are features and $y_i$ are labels. Target satisfaction percentage $\mathcal{T}$, maximum iterations $\mathcal{I}$.
+    \State \textbf{Output:} Optimized coefficients $\tilde{x}_1, \dots, \tilde{x}_k$, satisfaction percentage $\mathcal{S}$, and indices $\mathcal{I}_{\text{sat}}$ of satisfying samples.
+    
+    \State \textbf{Step 1: Property Definition}
+    \State Define the property template as an inequality:
+    \[
+    P: \mathcal{A} - (\mathbf{X}_i \mathbf{B}) \geq 0
+    \]
+    where $\mathcal{A}$ is a threshold and $\mathbf{B}$ are coefficients to optimize.
+    
+    \State \textbf{Step 2: Initial Coefficient Estimation via Ordinary Least Squares (OLS)}
+    \State Fit an OLS model using $\mathcal{D}$ to obtain initial coefficients $\hat{\mathbf{B}}$:
+    \[
+    \hat{\mathbf{B}} = \underset{\mathbf{B}}{\arg\min} \sum_{i=1}^N \left( y_i - \mathbf{X}_i \mathbf{B} \right)^2
+    \]
+    
+    \State \textbf{Step 3: Optimization}
+    \State Set the initial threshold $\mathcal{A}_{\text{fixed}}$ as:
+    \[
+    \mathcal{A}_{\text{fixed}} = \sum_{j=1}^k \hat{B}_j \cdot \text{mean}(\mathbf{X}_j) - \min(y)
+    \]
+    \State Define the objective function $\mathcal{F}(\mathbf{B})$:
+    \[
+    \mathcal{F}(\mathbf{B}) = \frac{1}{N} \sum_{i=1}^N \mathbf{1}\left(P \text{ is satisfied for } (\mathbf{X}_i, y_i)\right)
+    \]
+    \State Perform optimization using BFGS:
+    \[
+    \tilde{\mathbf{B}} = \underset{\mathbf{B}}{\arg\min} \left(\sum_{i=1}^N \left(y_i - (\mathbf{X}_i \mathbf{B} \pm \mathcal{A}_{\text{fixed}})\right)^2 \right)
+    \]
+    Stop early if $\mathcal{F}(\tilde{\mathbf{B}}) \geq \mathcal{T}$.
+    \State Return $\tilde{\mathbf{B}}$, $\mathcal{F}(\tilde{\mathbf{B}})$, and satisfying indices $\mathcal{I}_{\text{sat}}$.
+    \end{algorithmic}
+    \label{alg:compositional_training}
+\end{algorithm}
+
+
+\begin{algorithm}[htbp]
+    
+    \caption{Property-Based Training with Convex Optimization (Part 2: Filtering and Training)}
+    \begin{algorithmic}[1]
+    \State \textbf{Input:} Dataset $\mathcal{D}$, optimized coefficients $\tilde{\mathbf{B}}$, satisfying indices $\mathcal{I}_{\text{sat}}$, safety property $P_{\text{safety}}$.
+    \State \textbf{Output:} Trained model $M$ and final Accuracy $\mathcal{R}$.
+    
+    \State \textbf{Step 4: Data Filtering}
+    \State Partition $\mathcal{D}$ into subsets based on satisfaction:
+    \[
+    \mathcal{D}_{\text{sat}} = \{(\mathbf{X}_i, y_i) \in \mathcal{D} \mid P_{\text{safety}} \text{ is satisfied}\}
+    \]
+    \[
+    \mathcal{D}_{\text{unsat}} = \{(\mathbf{X}_i, y_i) \in \mathcal{D} \mid \neg P_{\text{safety}} \text{ is satisfied}\}
+    \]
+    
+    \State Retain lane-change samples ($y_i = 1$ or $y_i = -1$) in $\mathcal{D}_{\text{sat}}$ and no-lane-change samples ($y_i = 0$) in $\mathcal{D}_{\text{unsat}}$.
+    
+    \State \textbf{Step 5: Model Training on Filtered Data}
+    \State Merge $\mathcal{D}_{\text{sat}}$ and $\mathcal{D}_{\text{unsat}}$ to form the combined dataset $\mathcal{D}_{\text{combined}}$.
+    \State Train the model $M$:
+    \[
+    M = \underset{\theta}{\arg\min} \sum_{(\mathbf{X}_i, y_i) \in \mathcal{D}_{\text{combined}}} \mathcal{L}(M(\mathbf{X}_i; \theta), y_i)
+    \]
+    where $\mathcal{L}$ is the loss function.
+
+    State Evaluate the Accuracy $\mathcal{R}$:
+    \[
+    \mathcal{R} = \frac{|\{(\mathbf{X}_i, y_i) \in \mathcal{D}_{\text{combined}} \mid P_{\text{safety}} \text{ is satisfied}\}|}{|\mathcal{D}_{\text{combined}}|}
+    \]
+    \State Update $M$ to maximize $\mathcal{R}$ until convergence.
+    
+    \State Return $M$ and $\mathcal{R}$.
+    \end{algorithmic}
+    \label{alg:compositional_training_2}
+\end{algorithm}
+
+
+\subsection{Training Algorithm}
+\subsubsection{Property Initialization}
+The algorithm begins by defining a property template \( P \), represented as an inequality involving a threshold \( \mathcal{A} \) and a linear combination of features weighted by coefficients \( \mathbf{B} \). Formally, the property is expressed as:
+\[
+P: \mathcal{A} - (\mathbf{X}_i \mathbf{B}) \geq 0
+\]
+where \( \mathbf{X}_i \) represents the features of the dataset sample \( i \), \( \mathcal{A} \) is a fixed threshold, and \( \mathbf{B} \) are the coefficients to optimize. This formulation enables encoding constraints or safety properties into a mathematical framework, ensuring that samples satisfying the inequality adhere to the desired property.
+
+\subsubsection{Initial Coefficient Estimation via Ordinary Least Squares (OLS)}
+To initialize the optimization process, the algorithm estimates the coefficients \( \mathbf{B} \) using Ordinary Least Squares (OLS) regression. This involves minimizing the squared error between the observed values \( y_i \) and the predicted values \( \mathbf{X}_i \mathbf{B} \), calculated as:
+\[
+\hat{\mathbf{B}} = \underset{\mathbf{B}}{\arg\min} \sum_{i=1}^N \left( y_i - \mathbf{X}_i \mathbf{B} \right)^2
+\]
+The initial coefficients \( \hat{\mathbf{B}} \) serve as a starting point for subsequent optimization. The threshold \( \mathcal{A}_{\text{fixed}} \) is also initialized based on the fitted coefficients and the dataset characteristics, ensuring that it is aligned with the observed data distribution.
+
+\subsubsection{Constrained Optimization with BFGS}
+Following the initialization, the algorithm refines the coefficients \( \mathbf{B} \) using the Broyden-Fletcher-Goldfarb-Shanno (BFGS) method, a quasi-Newton optimization approach. The objective function \( \mathcal{F}(\mathbf{B}) \) is defined as the proportion of samples satisfying the property \( P \):
+\[
+\mathcal{F}(\mathbf{B}) = \frac{1}{N} \sum_{i=1}^N \mathbf{1}\left(\mathcal{A} - (\mathbf{X}_i \mathbf{B}) \geq 0 \right)
+\]
+where \( \mathbf{1} \) is the indicator function. The optimization aims to maximize \( \mathcal{F}(\mathbf{B}) \) while minimizing the prediction error. The BFGS algorithm (Broyden-Fletcher-Goldfarb-Shanno) is a quasi-Newton method used for optimization. It is particularly effective when the objective function is smooth and continuously differentiable. The BFGS method iteratively approximates the inverse Hessian matrix to update the solution and improve convergence efficiency.Optimization terminates early if the satisfaction percentage \( \mathcal{F}(\tilde{\mathbf{B}}) \) meets or exceeds the target \( \mathcal{T} \).
+
+% The BFGS algorithm (Broyden-Fletcher-Goldfarb-Shanno) is a quasi-Newton method used for optimization. It is particularly effective when the objective function is smooth and continuously differentiable. The BFGS method iteratively approximates the inverse Hessian matrix to update the solution and improve convergence efficiency. The steps in the BFGS method are:
+
+% \begin{enumerate}
+%     \item \textbf{Initialization:} Begin with an initial guess for the parameters and an initial approximation for the inverse Hessian matrix, typically set to the identity matrix.
+%     \item \textbf{Iterative Update:} For each iteration, compute the gradient (first derivative) of the objective function. The BFGS method updates the inverse Hessian matrix using the gradients from the current and previous iterations. The updated inverse Hessian is used to determine the search direction for the next iteration.
+%     \item \textbf{Step Size:} The algorithm computes the step size (learning rate) using a line search method, which ensures that the objective function decreases along the search direction.
+%     \item \textbf{Convergence Check:} The algorithm checks for convergence by comparing the changes in the parameter values between iterations. If the change is sufficiently small, the algorithm terminates.
+% \end{enumerate}
+
+% The BFGS method is particularly useful for constrained optimization problems, as it efficiently handles large numbers of variables while ensuring fast convergence to the optimal solution.
+
+
+
+\subsubsection{Data Filtering and Composite Property Formation}
+After performing the optimization, the dataset is filtered based on the satisfaction of the safety property \( P_{safety} \). We partition the dataset into two subsets: those samples that satisfy the property \( P_{safety} \) and those that do not. In other words, we combine This composite property is used to create a combined dataset \( \mathcal{D}_{\text{combined}} \) for training the final models.
+
+\subsubsection{Model Training on Property-Satisfying Data}
+Once the data is filtered and adjusted for property satisfaction, the models are trained using only the property-satisfying samples. This ensures that the models are aligned with the desired safety properties. The objective function for training is the standard loss function:
+\[
+M_i = \underset{\theta_i}{\arg\min} \sum_{(\mathbf{X}_j, y_j) \in \mathcal{D}_{\text{combined}}} \mathcal{L}(M_i(\mathbf{X}_j; \theta_i), y_j)
+\]
+where \( \mathcal{L} \) is the loss function and \( \theta_i \) represents the model parameters.
+
+Finally, the Accuracy \( \mathcal{R}_i \) of the trained models is evaluated based on their ability to satisfy the property \( P_i \). The goal is to maximize the Accuracy, which is the proportion of samples for which the model satisfies the property:
+\[
+\mathcal{R}_i = \frac{|\{(\mathbf{X}_j, y_j) \in \mathcal{D}_{\text{combined}} \mid P_i \text{ is satisfied by } M_i\}|}{|\mathcal{D}_{\text{combined}}|}
+\]
+The model is then updated to maximize this value.
+
+\subsubsection{Model Merging}
+After training and optimizing each individual model, the final step involves merging the models into a single merged model \( M_{\text{merged}} \), which ensures that all the properties \( P_1, \dots, P_n \) are satisfied. The merging process combines the outputs of the models such that the final model satisfies the combined set of properties, ensuring safe behavior in the autonomous system.
+\[
+M_{\text{merged}} = f(M_1, M_2, \dots, M_n)
+\]
+where \( f \) is a function designed to combine the models while maintaining the property satisfaction criteria.
+
+
+
+
+
+

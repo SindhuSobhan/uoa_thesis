@@ -1,0 +1,170 @@
+\section{Policies}
+\label{sec:av_policies}
+
+
+\subsection{System-Level Property}
+
+The system-level property for the AV case study we consider is very simple. We want to ensure that the AV does not collide with any other vehicle on the road. This is a very basic safety property that is required for any AV. The property can be decomposed into three sub-properties, one for each module. 
+
+\begin{itemize}
+  \item $P_{LC}$: No Collision Due to Lane Change
+  \begin{itemize}
+      \item $P_{LCD}$: No collision due to unsafe lane change decision
+      \begin{itemize}
+        \item $P_{LF}$: No collision with the left front car due to unsafe lane change to the left
+        \item  $P_{LP}$: No collision with the left rear car due to unsafe lane change to the left
+        \item $P_{RF}$: No collision with the right front car due to unsafe lane change to the right
+        \item $P_{RP}$: No collision with the right rear car due to unsafe lane change to the right
+        \item $P_{F}$: No collision with the front car due to unsafe lane change
+        \item $P_{P}$: No collision with the back car due to unsafe lane change
+      \end{itemize}
+      \item $P_{LCE}$: No collision due to lane change execution taking too long to finish
+  \end{itemize}
+  \item $P_{CF}$: No collision with front car due to Car following 
+\end{itemize}
+
+The compositon of these properties ensures that the AV does not collide with any other vehicle on the road.
+
+\begin{equation}
+  \begin{aligned}
+    P_{LC} = P_{LCD} \land P_{LCE} \\
+    P_{LCD} = ((P_{LF} \land P_{LP}) \lor (P_{RF} \land P_{RP})) \land (P_{F} \land P_{P}) \\
+    P_{safety} = P_{LC} \land P_{CF}
+  \end{aligned}
+\end{equation}
+
+As the goal here is to just show the compositional policy mining and training, we only focus on three safety properties ($P_{LCE}, P_{LCD}, P{CF}$), one for each module. More properties can be defined, but the composition will be similar. Following subsections define the properties in detail as an FSM and the enforcement mechanism to ensure that the properties are satisfied at runtime.
+
+\subsection{Safety Property for Discretionary Lane Change}
+
+\begin{figure}[htbp]
+    \centering
+
+    \begin{tikzpicture}[->,shorten >=1pt,auto,node distance=1.5cm,
+        semithick,initial where=below]	
+        \tikzstyle{every node}=[font=\small]
+        \tikzstyle{good state}=[circle,thick,draw=blue!75,fill=blue!20,minimum size=10mm,accepting]
+        \tikzstyle{bad state}=[circle,thick,draw=red!75,fill=red!20,minimum size=10mm]
+        \tikzstyle{dead state}=[rectangle,thick,draw=red!75,fill=red!20,minimum size=10mm]
+        \node[initial,good state] (l0) {$check$};
+        \node[dead state]         (l1) at (5,0) {$violation$};
+        
+        \path (l0) edge node {$\neg P_{LCD} \land LCD $}( l1)
+        edge [loop above] node { $(P_{LCD} \land LCD) \lor (P_{LCD} \land \neg LCD)$ } (l0)    
+  edge [loop left] node { $\neg P_{LCD} \land \neg LCD$ } (l0)    
+        (l1) edge  [loop above] node {$\Sigma$} (l1);
+        
+    \end{tikzpicture}
+    \caption{Safety property for discretionary lane change module}
+    \label{fig:lcd_property}
+\end{figure}
+Here, $ P_{LCD} = ((P_{LF} \land P_{LP}) \lor (P_{RF} \land P_{RP})) \land (P_{F} \land P_{P}) $. If $P=1$, it is considered safe to perform a lane change, while if $P=0$, it is not safe. The variable $LCD$ represents the output of the Lane Change Decision (LCD) module, where $LCD=1$ indicates a decision to change lanes, and $LCD=0$ indicates no lane change.
+
+The safety property illustrated in Figure \ref{fig:lcd_property} ensures that a lane change decision is only made when it is deemed safe by the property $P$. The transitions can be summarized as follows:
+
+Safe Operation: The system remains in the initial state $check$ as long as:
+  \begin{itemize}
+    \item $P_{LCD} \land LCD$: The LCD module outputs a lane change decision, and the safety property $P$ indicates it is safe to change lanes.
+    \item $P_{LCD} \land \neg LCD$: The safety property $P$ indicates it is safe, but the LCD module outputs no lane change.
+    \item $\neg P_{LCD} \land \neg LCD$: The LCD module outputs no lane change, and the safety property $P$ indicates it is unsafe to change lanes.
+  \end{itemize}
+  These conditions ensure that the system operates safely and avoids unnecessary violations.
+
+Violation State: The system transitions to the violation state $violation$ if $\neg P_{LCD} \land LCD$, meaning the LCD module outputs a lane change decision while the safety property $P_{LCD}$ indicates it is unsafe to do so. This represents a critical safety violation where the system attempts to change lanes in unsafe conditions.
+
+Violation Correction: The Enforcer corrects the violation by making the $LCD$ output 0, preventing the unsafe lane change. 
+
+This safety property guarantees that the Lane Change Decision (LCD) module operates within defined safety constraints, preventing unsafe lane changes as long the policies are defined correctly.
+
+
+
+\subsection{Safety Property for Car Following}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[->,shorten >=1pt,auto,node distance=3.5cm,el/.style = {inner sep=2pt, align=left, sloped},every label/.append style = {font=\small},semithick,initial where=left]
+    
+    \tikzstyle{every node}=[font=\small]
+    \tikzstyle{good state}=[circle,thick,draw=blue!75,fill=blue!20,minimum size=10mm,accepting]
+    \tikzstyle{dead state}=[rectangle,thick,draw=red!75,fill=red!20,minimum size=10mm]
+
+    \node[initial,good state] (S0) {$check$};
+    \node[dead state] at (5,0) (S1)  {$violation$};
+    
+    \path (S0) edge [loop above] node {$\begin{array}{c}P_{CF} \land a >= 0\\P_{CF} \land  a < 0\\ \neg P_{CF} \land  a \leq -u/2\end{array}$}( S0)
+    edge node {$\neg P_{CF} \land  a > -u/2 $} (S1)    
+    (S1) edge [loop above] node {$\Sigma$} (S1) ;
+\end{tikzpicture}
+\caption{Safety property for car following module}
+\label{fig:cf_property}
+\end{figure}
+
+
+Figure \ref{fig:cf_property} shows the safety property for the Car Following (CF) module. The property ensures that the car maintains safe behavior during car-following scenarios based on the conditions of acceleration ($a$), speed ($u$), and gap to the vehicle in front.
+
+Here, $P_{CF}$ is a property indicating whether the car is safely following the car ahead. For instance, $P_{CF}=1$ indicates the car is following safely, while $P_{CF}=0$ indicates the car is not following safely. The property operates as follows:
+
+Safe Operation: The system remains in the initial state $check$ under the following conditions:
+  \begin{itemize}
+    \item $P_{CF} \land a \geq 0$: The car is following safely, and its acceleration is non-negative, meaning it is either maintaining or increasing its speed.
+    \item $P_{CF} \land a < 0$: The car is following safely, but its acceleration is negative, indicating it is slowing down.
+    \item $\neg P_{CF} \land a \leq -\frac{u^2}{2 \cdot gap}$: The car is not following safely, but it is decelerating sufficiently to avoid a potential collision. Here, the term $-\frac{u^2}{2 \cdot gap}$ represents the critical deceleration needed to ensure a safe stop within the available gap.
+  \end{itemize}
+
+Violation State: The system transitions to the $violation$ state if $\neg P_{CF} \land a > -\frac{u^2}{2 \cdot gap}$, meaning the car is not following safely, and its deceleration is insufficient to avoid a collision. This represents a safety-critical situation where corrective action is needed.
+
+
+Violation Correction: The Enforcer corrects the violation by making $a = -u^2/(2*gap)$ or by braking. 
+
+This property ensures that the Car Following (CF) module adheres to safe car-following dynamics, preventing potential collisions by appropriately monitoring and controlling acceleration and maintaining a safe distance.
+
+
+
+\subsection{Safety Property for Lane Change 
+Execution}
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}[->,shorten >=1pt,auto,node distance=3.5cm,el/.style = {inner sep=2pt, align=left, sloped},every label/.append style = {font=\small},semithick,initial where=left]
+      
+      \tikzstyle{every node}=[font=\small]
+      \tikzstyle{good state}=[circle,thick,draw=blue!75,fill=blue!20,minimum size=10mm,accepting]
+      \tikzstyle{bad state}=[circle,thick,draw=red!75,fill=red!20,minimum size=10mm]
+      \tikzstyle{dead state}=[rectangle,thick,draw=red!75,fill=red!20,minimum size=10mm]
+      
+      \node[initial,good state] (S0) {$check$};
+      \node[bad state] at (7,0) (S1)  {$execute$};
+      \node[dead state] (S2) [below =2 cm of S1] {$violation$};
+
+      \path (S0) edge node {$LCE, x:=0$}( S1)
+      (S0) edge [loop below] node {$\neg LCE$} (S1)
+      
+      (S1) edge [bend right=60] node {$\neg LCE, x:=0$} (S0)
+      (S1) edge [loop above]   node {$LCE, x \leq 5$} (S1)
+      (S1) edge node {$LCE, x > 5$} (S2);
+  \end{tikzpicture}
+\caption{Safety property for the lane change execution module}
+\label{fig:lce_property}
+\end{figure}
+
+Figure \ref{fig:lce_property} illustrates the safety property for the Lane Change Execution (LCE) module. This property ensures that the lane change is executed within a predefined time threshold, guaranteeing adherence to safety requirements and preventing violations.
+
+In this state diagram, $LCE$ represents the Lane Change Execution signal, where $LCE=1$ indicates an ongoing lane change, and $LCE=0$ indicates no active lane change. The variable $x$ tracks the duration of the lane change. The system's behavior is described as follows:
+
+\textbf{Safe Operation:} The system starts in the $check$ state and remains there under the following conditions:
+\begin{itemize}
+    \item $\neg LCE$: No lane change is being executed ($LCE=0$), allowing the system to remain in the safe $check$ state. This is represented by a self-loop on the $check$ state.
+    \item $LCE \land x:=0$: If a lane change is initiated ($LCE=1$), the system transitions to the $execute$ state, resetting the duration variable $x$ to zero.
+\end{itemize}
+
+\textbf{Lane Change Execution:} The system enters the $execute$ state when $LCE=1$. While in this state:
+\begin{itemize}
+    \item $LCE \land x \leq 5$: The lane change continues safely as long as the duration $x$ does not exceed the threshold of 5 seconds. This is represented by a self-loop on the $execute$ state.
+    \item $\neg LCE; x:=0$: If the lane change is terminated ($LCE=0$), the system transitions back to the $check$ state, resetting the duration variable $x$.
+\end{itemize}
+
+\textbf{Violation State:} The system transitions to the $violation$ state when $LCE \land x > 5$, indicating that the lane change duration exceeds the safe threshold of 5 seconds. This represents a critical safety violation, as prolonged lane change execution can compromise safe driving conditions.
+
+\textbf{Violation Correction:} The system can only recover from the $violation$ state by terminating the lane change execution ($LCE=0$), ensuring that the violation is resolved and the system returns to a safe state.
+
+This property ensures that the Lane Change Execution (LCE) module operates safely by enforcing a time constraint on the lane change process, thus preventing unsafe or prolonged lane changes.
