@@ -548,7 +548,7 @@ As a result, the formal verification of monolithic ANNs often necessitates the u
 Furthermore, the sheer size and complexity of monolithic ANN designs impose practical limitations on their implementation, particularly when targeting affordable custom hardware platforms such as \glspl{fpga} for timing analysis - due to their deterministic timing behaviour. In practice, this means that only relatively small networks—often comprising just a few tens of neurons—can be feasibly implemented on such hardware, as demonstrated in studies such as \cite{saric_fpga-based_2020} and \cite{nguyen_efficient_2018}. This hardware constraint further restricts the applicability of monolithic ANN designs in resource-constrained, safety- and time-critical systems, highlighting the need for alternative, more modular approaches.
 
 
-\section{Conclusions}
+\section{Summary}
 
 This chapter introduced the background needed for the remainder of the thesis. We defined \glspl{cps} as safety-critical, real-time systems that require timely and correct interaction between physical plants and digital controllers, and explained why \gls{wcet} analysis and synchronous execution are relevant when timing guarantees matter. We then summarised core \gls{ml} concepts, with emphasis on feedforward \glspl{ann}, their training and evaluation, and post-hoc explainability techniques (\gls{shap}, \gls{ale}, and Anchors). Formal modelling tools---including \glspl{fsm}, timed automata, and runtime enforcement---were presented as mechanisms for specifying and monitoring system behaviour.
 

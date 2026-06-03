@@ -843,7 +843,7 @@ We can see from Figure \ref{fig:wcet_all} that the WCET reduction for both the D
 
 Furthermore, we found that none of the Depression dataset monolithic designs could be synthesised on hardware due to their high resource requirements. Hence, we could not compute the WCET reduction metric, and the results were not presented. Nevertheless, as all compositional models were synthesisable on hardware, we could compute the WCET of the compositional designs, which was around 1.4$\mu s$ for all subjects. 
 
-\subsection{Summary}
+\subsection{Summary of Results}
 
 Overall, we make the following findings for the MLP-based ANN designs.
 
@@ -866,7 +866,7 @@ We have also observed that using a compositional design results in only a minor 
 We do not claim that every numerical result in this chapter will transfer unchanged to other datasets. Nevertheless, the qualitative trends---lower hardware usage, shorter WCET, fewer connections, and near-monolithic predictive performance---should hold for other feedforward \gls{ann} models in time-critical \glspl{cps} whenever the monolithic model is large enough to benefit from decomposition and the compositional split aligns with the structure of the problem (e.g., distinct classes or feature clusters). The DLC dataset is representative of a high-dimensional, imbalanced classification problem in transportation, whereas the small UCI datasets mainly illustrate the method at a modest scale. The Depression dataset highlights personalised regression models with limited data per subject, where compositionality improves implementability on hardware. The magnitude of the reported gains will depend on dataset size, class balance, model depth, and the decomposition strategy chosen.
 
 
-\section{Conclusion}
+\section{Summary}
 \label{sec:chapter3_conclusions}
 In this chapter, we present a novel application-agnostic approach to replacing single monolithic feedforward ANN designs with compositional designs composed of several smaller ANNs and use several examples and tests to examine the capabilities of each design, both on software and hardware. We illustrate the approach through a two-stage method to designing compositional ANNs and examine it against monolithic ANNs through multiple example datasets, including a depression dataset and a \gls{dlc} dataset. To aid in proper timing analysis using WCET, we develop a compiler that uses synchronous execution semantics to implement ANN designs on hardware. We further use a multicyclic approach that enables the reuse of hardware components and reduces the number of hardware resources required.
 
