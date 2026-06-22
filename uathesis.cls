@@ -1114,8 +1114,9 @@ wish to left align your text}
 \newsavebox{\PHD@author}
 \begin{lrbox}{\PHD@author}
   \begin{minipage}[c]{\textwidth}
+    \vspace{1em} 
     \centering \huge \bfseries{\@author}
-      \vspace{1em}   
+      \vspace{5em}   
   \end{minipage}
 \end{lrbox}
 
@@ -1177,7 +1178,6 @@ wish to left align your text}
       \textsc{A thesis submitted in fulfilment of the requirements for the degree of} \par 
       \textsc{\@degreetitle} \textsc{in} \textsc{\@subjectarea,} \par  
       \textsc{the University of Auckland, \@degreedate.} \par 
-      \textsc{This thesis is for examination purposes only and is confidential to the examination process.}
     \end{center}
   \end{minipage}
 \end{lrbox}

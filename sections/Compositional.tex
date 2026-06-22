@@ -666,44 +666,47 @@ The \gls{vhdl} code generation algorithm (Algorithm \ref{alg:write-vhdl}) transf
 \end{enumerate}
 
 
-The \gls{vhdl} code generation process is carried out by several key functions, as described in Algorithm \ref{alg:generate-vhdl}. The \texttt{generateVHDL} function converts a single model's JSON representation into \gls{vhdl} code, while \texttt{genActVHDL} produces \gls{vhdl} implementations for piecewise linear activation functions. The \texttt{genModPipelineMap} function is responsible for generating a pipeline map that connects the various models within the \gls{vhdl} design, and \texttt{genLibrary} creates the necessary library files to support fixed-point arithmetic operations.
-
-Thus, the compilation system generates a complete \gls{vhdl} project structure that includes several key components: a main \gls{vhdl} file serving as the top-level entity with the full neural network implementation; a component library containing fixed-point arithmetic functions and utilities; individual \gls{vhdl} files for each activation function; and, optionally, a result processing block for classification tasks. Listing \ref{lst:usage_example} shows a basic usage example of the tool in Python.  
- 
 
 \begin{lstlisting}[language=Python, caption=Basic Usage Example of the compiler in Python, label=lst:usage_example]
-# Import necessary libraries
-from nn2vhdl import ToVHDL
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Dense
+    # Import necessary libraries
+    from nn2vhdl import ToVHDL
+    from tensorflow.keras.models import Model
+    from tensorflow.keras.layers import Input, Dense
+    
+    # Create a simple neural network
+    def create_model():
+        inp = Input(shape = (16,), name = 'Input')
+        x = Dense(int(16), activation = 'relu')(inp)
+        x = Dense(int(8), activation  = 'relu')(x)
+        x = Dense(int(4), activation  = 'relu')(x)
+        out = Dense(1, activation = 'sigmoid')(x)
+    
+        model = Model(inp, out)
+        # Compile model
+        model.compile(optimizer = "adam", loss = 'binary_crossentropy')
+        return model
+    
+    # Create two models
+    modelL = create_model()
+    modelR = create_model()
+    
+    # Convert Compositional ANN model to VHDL
+    ToVHDL(models=[modelL, modelR],
+        \textsl{Model}_names = ["\textsl{Model}_L", "\textsl{Model}_R"], 
+        connections = ["input[0:16] -> \textsl{Model}_L", "input[6:22] -> \textsl{Model}_R"], #Specify the connections between the models
+        classes = [0,1,2], #Specify the labels of the classes
+        max_inputs=22, #Specify the number of inputs
+        result_block=True) #Specify if a merge block is required
+    \end{lstlisting}
+    
+    
+    
+The \gls{vhdl} code generation process is carried out by several key functions, as described in Algorithm \ref{alg:generate-vhdl}. The \texttt{generateVHDL} function converts a single model's JSON representation into \gls{vhdl} code, while \texttt{genActVHDL} produces \gls{vhdl} implementations for piecewise linear activation functions. The \texttt{genModPipelineMap} function is responsible for generating a pipeline map that connects the various models within the \gls{vhdl} design, and \texttt{genLibrary} creates the necessary library files to support fixed-point arithmetic operations.
 
-# Create a simple neural network
-def create_model():
-    inp = Input(shape = (16,), name = 'Input')
-    x = Dense(int(16), activation = 'relu')(inp)
-    x = Dense(int(8), activation  = 'relu')(x)
-    x = Dense(int(4), activation  = 'relu')(x)
-    out = Dense(1, activation = 'sigmoid')(x)
+Thus, the compilation system generates a complete \gls{vhdl} project structure that includes several key components: a main \gls{vhdl} file serving as the top-level entity with the full neural network implementation; a component library containing fixed-point arithmetic functions and utilities; individual \gls{vhdl} files for each activation function; and, optionally, a result processing block for classification tasks. 
 
-    model = Model(inp, out)
-    # Compile model
-    model.compile(optimizer = "adam", loss = 'binary_crossentropy')
-    return model
-
-# Create two models
-modelL = create_model()
-modelR = create_model()
-
-# Convert Compositional ANN model to VHDL
-ToVHDL(models=[modelL, modelR],
-    \textsl{Model}_names = ["\textsl{Model}_L", "\textsl{Model}_R"], 
-    connections = ["input[0:16] -> \textsl{Model}_L", "input[6:22] -> \textsl{Model}_R"], #Specify the connections between the models
-    classes = [0,1,2], #Specify the labels of the classes
-    max_inputs=22, #Specify the number of inputs
-    result_block=True) #Specify if a merge block is required
-\end{lstlisting}
-
-
+Listing \ref{lst:usage_example} shows a basic usage example of the tool in Python. In the listing, line 2 imports the \texttt{ToVHDL} class from the \texttt{nn2vhdl} package. Lines 3 and 4 import the \texttt{Model} and \texttt{Input} classes from the \texttt{tensorflow.keras.models} and \texttt{tensorflow.keras.layers} packages, respectively. Lines 7-12 create a simple neural network with three layers and a sigmoid activation function. Lines 20 and 21 instantiate the models. Line 24-29 use the \texttt{ToVHDL} function to convert the model to \gls{vhdl} code. The function takes a list of models, a list of model names, a list of connections between the models, a list of classes, and a maximum number of inputs. The function returns a folder with the \gls{vhdl} code for the model. The function also accepts model weights and architecture information instead of the model itself if needed.
+ 
 
 
 

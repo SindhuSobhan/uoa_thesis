@@ -482,12 +482,21 @@ Publisher: Springer-Verlag},
 	keywords = {skimmed},
 }
 
-@misc{dreossi_compositional_2018,
-	title = {Compositional {Falsification} of {Cyber}-{Physical} {Systems} with {Machine} {Learning} {Components}},
-	author = {Dreossi, Tommaso and Donzé, Alexandre and Seshia, Sanjit A.},
-	year = {2018},
-	note = {\_eprint: 1703.00978},
-	keywords = {read},
+@InProceedings{dreossi_compositional_2018,
+author="Dreossi, Tommaso
+and Donz{\'e}, Alexandre
+and Seshia, Sanjit A.",
+editor="Barrett, Clark
+and Davies, Misty
+and Kahsai, Temesghen",
+title="Compositional Falsification of Cyber-Physical Systems with Machine Learning Components",
+booktitle="NASA Formal Methods",
+year="2017",
+publisher="Springer International Publishing",
+address="Cham",
+pages="357--372",
+abstract="Cyber-physical systems (CPS), such as automotive systems, are starting to include sophisticated machine learning (ML) components. Their correctness, therefore, depends on properties of the inner ML modules. While learning algorithms aim to generalize from examples, they are only as good as the examples provided, and recent efforts have shown that they can produce inconsistent output under small adversarial perturbations. This raises the question: can the output from learning components can lead to a failure of the entire CPS? In this work, we address this question by formulating it as a problem of falsifying signal temporal logic (STL) specifications for CPS with ML components. We propose a compositional falsification framework where a temporal logic falsifier and a machine learning analyzer cooperate with the aim of finding falsifying executions of the considered model. The efficacy of the proposed technique is shown on an automatic emergency braking system model with a perception component based on deep neural networks.",
+isbn="978-3-319-57288-8"
 }
 
 @inproceedings{seshia_formal_2018,
@@ -1849,11 +1858,19 @@ Publisher: Association for Computing Machinery},
 	note = {Publisher: GitHub},
 }
 
-@misc{martin_abadi_tensorflow_2015,
-	title = {{TensorFlow}: {Large}-{Scale} {Machine} {Learning} on {Heterogeneous} {Systems}},
-	url = {https://www.tensorflow.org/},
-	author = {{Martín Abadi} and {Ashish Agarwal} and {Paul Barham} and {Eugene Brevdo} and {Zhifeng Chen} and {Craig Citro} and {Greg S. Corrado} and {Andy Davis} and {Jeffrey Dean} and {Matthieu Devin} and {Sanjay Ghemawat} and {Ian Goodfellow} and {Andrew Harp} and {Geoffrey Irving} and {Michael Isard} and Jia, Yangqing and {Rafal Jozefowicz} and {Lukasz Kaiser} and {Manjunath Kudlur} and {Josh Levenberg} and {Dandelion Mané} and {Rajat Monga} and {Sherry Moore} and {Derek Murray} and {Chris Olah} and {Mike Schuster} and {Jonathon Shlens} and {Benoit Steiner} and {Ilya Sutskever} and {Kunal Talwar} and {Paul Tucker} and {Vincent Vanhoucke} and {Vijay Vasudevan} and {Fernanda Viégas} and {Oriol Vinyals} and {Pete Warden} and {Martin Wattenberg} and {Martin Wicke} and {Yuan Yu} and {Xiaoqiang Zheng}},
-	year = {2015},
+@inproceedings{martin_abadi_tensorflow_2015,
+author = {Abadi, Mart\'{\i}n and Barham, Paul and Chen, Jianmin and Chen, Zhifeng and Davis, Andy and Dean, Jeffrey and Devin, Matthieu and Ghemawat, Sanjay and Irving, Geoffrey and Isard, Michael and Kudlur, Manjunath and Levenberg, Josh and Monga, Rajat and Moore, Sherry and Murray, Derek G. and Steiner, Benoit and Tucker, Paul and Vasudevan, Vijay and Warden, Pete and Wicke, Martin and Yu, Yuan and Zheng, Xiaoqiang},
+title = {TensorFlow: a system for large-scale machine learning},
+year = {2016},
+isbn = {9781931971331},
+publisher = {USENIX Association},
+address = {USA},
+abstract = {TensorFlow is a machine learning system that operates at large scale and in heterogeneous environments. Tensor-Flow uses dataflow graphs to represent computation, shared state, and the operations that mutate that state. It maps the nodes of a dataflow graph across many machines in a cluster, and within a machine across multiple computational devices, including multicore CPUs, general-purpose GPUs, and custom-designed ASICs known as Tensor Processing Units (TPUs). This architecture gives flexibility to the application developer: whereas in previous "parameter server" designs the management of shared state is built into the system, TensorFlow enables developers to experiment with novel optimizations and training algorithms. TensorFlow supports a variety of applications, with a focus on training and inference on deep neural networks. Several Google services use TensorFlow in production, we have released it as an open-source project, and it has become widely used for machine learning research. In this paper, we describe the TensorFlow dataflow model and demonstrate the compelling performance that TensorFlow achieves for several real-world applications.},
+booktitle = {Proceedings of the 12th USENIX Conference on Operating Systems Design and Implementation},
+pages = {265–283},
+numpages = {19},
+location = {Savannah, GA, USA},
+series = {OSDI'16}
 }
 
 @inproceedings{allen_semantics-directed_2020,
@@ -1910,15 +1927,23 @@ Publisher: Association for Computing Machinery},
 }
 
 @article{mckay_comparison_1979,
-	title = {A {Comparison} of {Three} {Methods} for {Selecting} {Vales} of {Input} {Variables} in the {Analysis} of {Output} {From} a {Computer} {Code}},
-	volume = {21},
-	doi = {10.1080/00401706.1979.10489755},
-	journal = {Technometrics},
-	author = {Mckay, M. and Beckman, Richard and Conover, William},
-	month = may,
-	year = {1979},
-	pages = {239--245},
+author = {M. D. Mckay and R. J. Beckman and W. J. Conover},
+title = {A Comparison of Three Methods for Selecting Values of Input Variables in the Analysis of Output From a Computer Code},
+journal = {Technometrics},
+volume = {42},
+number = {1},
+pages = {55--61},
+year = {2000},
+publisher = {Taylor \& Francis},
+doi = {10.1080/00401706.2000.10485979},
+URL = { 
+        https://www.tandfonline.com/doi/abs/10.1080/00401706.2000.10485979
+},
+eprint = { 
+        https://www.tandfonline.com/doi/pdf/10.1080/00401706.2000.10485979
 }
+}
+
 
 @inproceedings{mockus_bayesian_1975,
 	address = {Berlin, Heidelberg},
@@ -1998,11 +2023,19 @@ Publisher: Association for Computing Machinery},
 	pages = {889--900},
 }
 
-@misc{watanabe_modular_2017,
-	title = {Modular {Representation} of {Layered} {Neural} {Networks}},
-	author = {Watanabe, Chihiro and Hiramatsu, Kaoru and Kashino, Kunio},
-	year = {2017},
-	note = {\_eprint: 1703.00168},
+
+@article{watanabe_modular_2017,
+title = {Modular representation of layered neural networks},
+journal = {Neural Networks},
+volume = {97},
+pages = {62-73},
+year = {2018},
+issn = {0893-6080},
+doi = {https://doi.org/10.1016/j.neunet.2017.09.017},
+url = {https://www.sciencedirect.com/science/article/pii/S0893608017302319},
+author = {Chihiro Watanabe and Kaoru Hiramatsu and Kunio Kashino},
+keywords = {Layered neural networks, Network analysis, Community detection},
+abstract = {Layered neural networks have greatly improved the performance of various applications including image processing, speech recognition, natural language processing, and bioinformatics. However, it is still difficult to discover or interpret knowledge from the inference provided by a layered neural network, since its internal representation has many nonlinear and complex parameters embedded in hierarchical layers. Therefore, it becomes important to establish a new methodology by which layered neural networks can be understood. In this paper, we propose a new method for extracting a global and simplified structure from a layered neural network. Based on network analysis, the proposed method detects communities or clusters of units with similar connection patterns. We show its effectiveness by applying it to three use cases. (1) Network decomposition: it can decompose a trained neural network into multiple small independent networks thus dividing the problem and reducing the computation time. (2) Training assessment: the appropriateness of a trained result with a given hyperparameter or randomly chosen initial parameters can be evaluated by using a modularity index. And (3) data analysis: in practical data it reveals the community structure in the input, hidden, and output layers, which serves as a clue for discovering knowledge from a trained neural network.}
 }
 
 @inproceedings{pulina_abstraction-refinement_2010,
@@ -2401,15 +2434,15 @@ Publisher: Nature Publishing Group},
 	pages = {880--888},
 }
 
+
 @article{plotkin_structural_2004-1,
-	title = {A {Structural} {Approach} to {Operational} {Semantics}},
-	volume = {60-61},
-	doi = {10.1016/j.jlap.2004.05.001},
-	journal = {J. Log. Algebr. Program.},
-	author = {Plotkin, Gordon},
-	month = jul,
-	year = {2004},
-	pages = {17--139},
+  title={A structural approach to operational semantics},
+  author={Gordon D. Plotkin},
+  journal={J. Log. Algebraic Methods Program.},
+  year={2004},
+  volume={60-61},
+  pages={17-139},
+  url={https://api.semanticscholar.org/CorpusID:14389229}
 }
 
 @article{mitra_time-critical_2018-1,
@@ -4701,7 +4734,7 @@ recommendations on what is to be done to remedy the situation.},
 @incollection{bruce_statistical_2017,
 	title = {Statistical {Experiments} and {Significance} {Testing}},
 	isbn = {978-1-4919-5296-2},
-	url = {https://www.oreilly.com/library/view/practical-statistics-for/9781491952955/},
+	url = {https://www.oreilly.com/library/view/practical-statistics-for/9781491952955/ch03.html},
 	abstract = {Statistical methods are a key part of of data science, yet very few data scientists have any formal statistics training. Courses and books on basic statistics rarely cover the topic … - Selection from Practical Statistics for Data Scientists [Book]},
 	language = {en},
 	urldate = {2023-03-28},
@@ -5322,20 +5355,26 @@ Publisher: Nature Publishing Group},
 	file = {Ribeiro et al. - 2018 - Anchors High-Precision Model-Agnostic Explanation.pdf:/Users/sobhanchatterjee/Zotero/storage/DDV7463Z/Ribeiro et al. - 2018 - Anchors High-Precision Model-Agnostic Explanation.pdf:application/pdf},
 }
 
-@misc{apley_visualizing_2019,
-	title = {Visualizing the {Effects} of {Predictor} {Variables} in {Black} {Box} {Supervised} {Learning} {Models}},
-	url = {http://arxiv.org/abs/1612.08468},
-	doi = {10.48550/arXiv.1612.08468},
-	abstract = {When fitting black box supervised learning models (e.g., complex trees, neural networks, boosted trees, random forests, nearest neighbors, local kernel-weighted methods, etc.), visualizing the main effects of the individual predictor variables and their low-order interaction effects is often important, and partial dependence (PD) plots are the most popular approach for accomplishing this. However, PD plots involve a serious pitfall if the predictor variables are far from independent, which is quite common with large observational data sets. Namely, PD plots require extrapolation of the response at predictor values that are far outside the multivariate envelope of the training data, which can render the PD plots unreliable. Although marginal plots (M plots) do not require such extrapolation, they produce substantially biased and misleading results when the predictors are dependent, analogous to the omitted variable bias in regression. We present a new visualization approach that we term accumulated local effects (ALE) plots, which inherits the desirable characteristics of PD and M plots, without inheriting their preceding shortcomings. Like M plots, ALE plots do not require extrapolation; and like PD plots, they are not biased by the omitted variable phenomenon. Moreover, ALE plots are far less computationally expensive than PD plots.},
-	urldate = {2023-04-06},
-	publisher = {arXiv},
-	author = {Apley, Daniel W. and Zhu, Jingyu},
-	month = aug,
-	year = {2019},
-	note = {arXiv:1612.08468 [stat]},
-	keywords = {Statistics - Methodology},
-	file = {arXiv Fulltext PDF:/Users/sobhanchatterjee/Zotero/storage/YM9SKX7A/Apley and Zhu - 2019 - Visualizing the Effects of Predictor Variables in .pdf:application/pdf;arXiv.org Snapshot:/Users/sobhanchatterjee/Zotero/storage/23J47LRM/1612.html:text/html},
+
+@article{apley_visualizing_2019,
+    author = {Apley, Daniel W. and Zhu, Jingyu},
+    title = {Visualizing the Effects of Predictor Variables in Black Box Supervised Learning Models},
+    journal = {Journal of the Royal Statistical Society Series B: Statistical Methodology},
+    volume = {82},
+    number = {4},
+    pages = {1059-1086},
+    year = {2020},
+    month = {09},
+    abstract = {In many supervised learning applications, understanding and visualizing the effects of the predictor variables on the predicted response is of paramount importance. A shortcoming of black box supervised learning models (e.g. complex trees, neural networks, boosted trees, random forests, nearest neighbours, local kernel-weighted methods and support vector regression) in this regard is their lack of interpretability or transparency. Partial dependence plots, which are the most popular approach for visualizing the effects of the predictors with black box supervised learning models, can produce erroneous results if the predictors are strongly correlated, because they require extrapolation of the response at predictor values that are far outside the multivariate envelope of the training data. As an alternative to partial dependence plots, we present a new visualization approach that we term accumulated local effects plots, which do not require this unreliable extrapolation with correlated predictors. Moreover, accumulated local effects plots are far less computationally expensive than partial dependence plots. We also provide an R package ALEPlot as supplementary material to implement our proposed method.},
+    issn = {1369-7412},
+    doi = {10.1111/rssb.12377},
+    url = {https://doi.org/10.1111/rssb.12377},
+    eprint = {https://academic.oup.com/jrsssb/article-pdf/82/4/1059/49323845/jrsssb_82_4_1059.pdf},
 }
+
+
+
+
 
 @misc{noauthor_2_nodate,
 	title = {{Over}-sampling — {Version} 0.10.1},
@@ -6598,16 +6637,15 @@ Publisher: Nature Publishing Group},
 }
 
 
-
-
-@misc{kingma2017adam,
-      title={Adam: A Method for Stochastic Optimization}, 
-      author={Diederik P. Kingma and Jimmy Ba},
-      year={2017},
-      eprint={1412.6980},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG}
+@article{kingma2017adam,
+  title={Adam: A Method for Stochastic Optimization},
+  author={Diederik P. Kingma and Jimmy Ba},
+  journal={CoRR},
+  year={2014},
+  volume={abs/1412.6980},
+  url={https://api.semanticscholar.org/CorpusID:6628106}
 }
+
 
 @article{scikit-learn,
  title={Scikit-learn: Machine Learning in {P}ython},
@@ -6750,16 +6788,17 @@ series = {IJCAI'87}
 }
 
 
+@article{pearce_smart_2020,
+  author={Pearce, Hammond and Pinisetty, Srinivas and Roop, Partha S. and Kuo, Matthew M. Y. and Ukil, Abhisek},
+  journal={IEEE Transactions on Industrial Informatics}, 
+  title={Smart I/O Modules for Mitigating Cyber-Physical Attacks on Industrial Control Systems}, 
+  year={2020},
+  volume={16},
+  number={7},
+  pages={4659-4669},
+  keywords={Runtime;Security;Hardware;Monitoring;Control systems;Safety;Industries;Cyber-physical attacks;cyber-physical systems (CPSs);industrial control systems;security, runtime enforcement},
+  doi={10.1109/TII.2019.2945520}}
 
-@ARTICLE{pearce_smart_2020,  
-author={Pearce, Hammond and Pinisetty, Srinivas and Roop, Partha S. and Kuo, Matthew M. Y. and Ukil, Abhisek},  
-journal={IEEE Transactions on Industrial Informatics},   
-title={Smart I/O Modules for Mitigating Cyber-Physical Attacks on Industrial Control Systems},   
-year={2020},  
-volume={16},  
-number={7},  
-pages={4659-4669},  
-doi={10.1109/TII.2019.2945520}}
 
 
 @article{10.1145/3126500,
@@ -6903,7 +6942,7 @@ series = {SODA '07}
 
 
 
-@article{Zhou2023Compositional,
+@article{Zhou2023Compositional_1,
 	author = {Zhou, Yuhao and Tripakis, Stavros},
 	journal = {NASA Formal Methods},
 	doi = {10.48550/ARXIV.2312.10842},
@@ -6912,6 +6951,25 @@ series = {SODA '07}
 	title = {Compositional {Inductive} {Invariant} {Based} {Verification} of {Neural} {Network} {Controlled} {Systems}},
 	url = {https://arxiv.org/abs/2312.10842},
 }
+
+@inproceedings{Zhou2023Compositional,
+author = {Zhou, Yuhao and Tripakis, Stavros},
+title = {Compositional Inductive Invariant Based Verification of Neural Network Controlled Systems},
+year = {2024},
+isbn = {978-3-031-60697-7},
+publisher = {Springer-Verlag},
+address = {Berlin, Heidelberg},
+url = {https://doi.org/10.1007/978-3-031-60698-4_14},
+doi = {10.1007/978-3-031-60698-4_14},
+abstract = {The integration of neural networks into safety-critical systems has shown great potential in recent years. However, the challenge of effectively verifying the safety of Neural Network Controlled Systems (NNCS) persists. This paper introduces a novel approach to NNCS safety verification, leveraging the inductive invariant method. Verifying the inductiveness of a candidate inductive invariant in the context of NNCS is hard because of the scale and nonlinearity of neural networks. Our compositional method makes this verification process manageable by decomposing the inductiveness proof obligation into smaller, more tractable subproblems. Alongside the high-level method, we present an algorithm capable of automatically verifying the inductiveness of given candidates by automatically inferring the necessary decomposition predicates. The algorithm significantly outperforms the baseline method and shows remarkable reductions in execution time in our case studies, shortening the verification time from hours (or timeout) to seconds.},
+booktitle = {NASA Formal Methods: 16th International Symposium, NFM 2024, Moffett Field, CA, USA, June 4–-6, 2024, Proceedings},
+pages = {239–-255},
+numpages = {17},
+keywords = {Formal Verification, Inductive Invariant, Neural Networks, Neural Network Controlled Systems},
+location = {Moffett Field, CA, USA}
+}
+
+
 
 
 @inproceedings{Ivanov2019Verisig,
@@ -6927,14 +6985,19 @@ series = {SODA '07}
 }
 
 
-@article{Cai2024Scalable,
-	author = {Cai, Feiyang and Fan, Chuchu and Bak, Stanley},
-	journal = {AAAI Conference on Artificial Intelligence},
-	doi = {10.48550/ARXIV.2405.18554},
-	year = {2024},
-	publisher = {arXiv},
-	title = {Scalable {Surrogate} {Verification} of {Image}-based {Neural} {Network} {Control} {Systems} using {Composition} and {Unrolling}},
-	url = {https://arxiv.org/abs/2405.18554},
+@inproceedings{Cai2024Scalable,
+author = {Cai, Feiyang and Fan, Chuchu and Bak, Stanley},
+title = {Scalable surrogate verification of image-based neural network control systems using composition and unrolling},
+year = {2025},
+isbn = {978-1-57735-897-8},
+publisher = {AAAI Press},
+url = {https://doi.org/10.1609/aaai.v39i1.31976},
+doi = {10.1609/aaai.v39i1.31976},
+abstract = {Verifying safety of neural network control systems that use images as input is a difficult problem because, from a given system state, there is no known way to mathematically model what images are possible in the real-world. We build upon recent work that considers a surrogate verification approach, training a conditional generative adversarial network (cGAN) as an image generator in place of the real world. This setup enables set-based formal analysis of the closed-loop system, providing analysis beyond simulation and testing. While existing work is effective on small examples, excessive overapproximation both within a single control period (one-step error) and across multiple periods (multi-step error) limits its scalability. We propose approaches to overcome these errors. First, we address one-step error by composing the system's dynamics along with the cGAN and neural network controller, without losing the dependencies between input states and the control outputs as in the monotonic analysis of the system dynamics. Second, we reduce multi-step error by repeating the single-step composition, essentially unrolling multiple steps of the control loop into a large neural network. We then leverage existing network verification algorithms to compute accurate reachable sets for multiple steps, avoiding the accumulation of abstraction error at each step. We demonstrate the effectiveness of our approach in terms of both accuracy and scalability using two case studies. On the aircraft taxiing system, the converged reachable set is 175\% larger using the prior baseline method compared with our proposed approach. On the emergency braking system, with 24\texttimes{} the number of image output variables from the cGAN, the baseline method fails to prove any states are safe, whereas our improvements enable set-based safety analysis.},
+booktitle = {Proceedings of the Thirty-Ninth AAAI Conference on Artificial Intelligence and Thirty-Seventh Conference on Innovative Applications of Artificial Intelligence and Fifteenth Symposium on Educational Advances in Artificial Intelligence},
+articleno = {3},
+numpages = {10},
+series = {AAAI'25/IAAI'25/EAAI'25}
 }
 
 
@@ -7143,16 +7206,14 @@ keywords = {synchronous programming languages, reactive systems., concurrency, a
   year      =  2018
 }
 
-@BOOK{De_Roever2006-fx,
-  title     = "Compositionality: The significant difference",
-  editor    = "De Roever, Willem-Paul and Langmaack, Hans and Pnueli, Amir",
-  publisher = "Springer",
-  series    = "Lecture notes in computer science",
-  month     =  nov,
-  year      =  2006,
-  address   = "New York, NY",
-  language  = "en"
-}
+
+@proceedings{De_Roever2006-fx, 
+editor = {Willem P. de Roever, Hans Langmaack and Amir Pnueli}, 
+title = {COMPOS'97: Revised Lectures from the International Symposium on Compositionality: The Significant Difference}, 
+year = {1997}, 
+isbn = {3540654933}, 
+publisher = {Springer-Verlag}, 
+address = {Berlin, Heidelberg} }
 
 @ARTICLE{1173203,
   author={Eker, J. and Janneck, J.W. and Lee, E.A. and Jie Liu and Xiaojun Liu and Ludvig, J. and Neuendorffer, S. and Sachs, S. and Yuhong Xiong},
@@ -7193,6 +7254,7 @@ numpages = {22},
 series = {TACAS 2001}
 }
 
+
 @InProceedings{donze_on_2013_stl,
 author="Donz{\'e}, Alexandre",
 editor="Legay, Axel
@@ -7208,19 +7270,34 @@ isbn="978-3-642-40787-1"
 }
 
 
-@book{buttazzo_hard_2011,
-  author    = {G. C. Buttazzo},
-  title     = {Hard Real-Time Computing Systems: Predictable Scheduling Algorithms and Applications},
-  year      = {2011},
-  publisher = {Springer},
+@Inbook{buttazzo_hard_2011,
+title="Resource access protocols",
+bookTitle="Hard real-time computing systems: Predictable scheduling algorithms and applications",
+year="1997",
+publisher="Springer US",
+address="Boston, MA",
+pages="181--223",
+abstract="A resource is any software structure that can be used by a process to advance its execution. Typically, a resource can be a data structure, a set of variables, a main memory area, a file, or a set of registers of a peripheral device. A resource dedicated to a particular process is said to be private, whereas a resource that can be used by more tasks is called a shared resource. A shared resource protected against concurrent accesses is called an exclusive resource.",
+isbn="978-0-585-28005-9",
+doi="10.1007/978-0-585-28005-9_7",
+url="https://doi.org/10.1007/978-0-585-28005-9_7"
 }
 
-@book{kopetz_real-time_2011,
-  author    = {Hermann Kopetz},
-  title     = {Real-Time Systems: Design Principles for Distributed Embedded Applications},
-  year      = {2011},
-  publisher = {Springer},
+
+@Inbook{kopetz_real-time_2011,
+title="The Real-Time Environment",
+bookTitle="Real-Time Systems: Design Principles for Distributed Embedded Applications",
+year="1997",
+publisher="Springer US",
+address="Boston, MA",
+pages="1--28",
+abstract="The purpose of this introductory chapter is to describe the environment of real-time computer systems from a number of different perspectives. A solid understanding of the technical and economic factors which characterize a real-time application helps to interpret the demands that the system designer must cope with. The chapter starts with the definition of a real-time system and with a discussion of its functional and metafunctional requirements. Particular emphasis is placed on the temporal requirements that are derived from the well-understood properties of control applications. The objective of a control algorithm is to drive a process so that a performance criterion is satisfied. Random disturbances occurring in the environment degrade system performance and must be taken into account by the control algorithm. Any additional uncertainty that is introduced into the control loop by the control system itself, e.g., a non-predictable jitter of the control loop, results in a degradation of the quality of control.",
+isbn="978-0-306-47055-4",
+doi="10.1007/0-306-47055-1_1",
+url="https://doi.org/10.1007/0-306-47055-1_1"
 }
+
+
 
 @article{liu_real-time_1973,
   author  = {C. L. Liu and James W. Layland},
@@ -7347,14 +7424,13 @@ keywords = {nonlinear optimization, global optimization, genetic algorithm, evol
   keywords={Natural languages;Design methodology;Synchronization;Acoustical engineering;Design engineering;Commercialization;Concurrent computing;Centralized control;Control systems;Costs},
   doi={10.1109/JPROC.2002.805826}}
 
-@misc{goodfellow_explaining_2015,
-      title={Explaining and Harnessing Adversarial Examples}, 
-      author={Ian J. Goodfellow and Jonathon Shlens and Christian Szegedy},
-      year={2015},
-      eprint={1412.6572},
-      archivePrefix={arXiv},
-      primaryClass={stat.ML},
-      url={https://arxiv.org/abs/1412.6572}, 
+@article{goodfellow_explaining_2015,
+  title={Explaining and Harnessing Adversarial Examples},
+  author={Ian J. Goodfellow and Jonathon Shlens and Christian Szegedy},
+  journal={CoRR},
+  year={2014},
+  volume={abs/1412.6572},
+  url={https://api.semanticscholar.org/CorpusID:6706414}
 }
 
 @article{moreno_unifying_2012,
@@ -7410,12 +7486,14 @@ abstract = {The field of dataset shift has received a growing amount of interest
   doi       = {10.1109/CVPR42600.2020.00252}
 }
 
-@inproceedings{bansal_chauffeurnet_2019,
-  author    = {Bansal, Mayank and Krizhevsky, Alex and Ogale, Abhijit},
-  title     = {{ChauffeurNet}: Learning to Drive by Imitating the Best and Synthesizing the Worst},
-  booktitle = {Robotics: Science and Systems XV},
-  year      = {2019},
-  doi       = {10.15607/RSS.2019.XV.025}
+@misc{bansal_chauffeurnet_2019,
+      title={ChauffeurNet: Learning to Drive by Imitating the Best and Synthesizing the Worst}, 
+      author={Mayank Bansal and Alex Krizhevsky and Abhijit Ogale},
+      year={2018},
+      eprint={1812.03079},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO},
+      url={https://arxiv.org/abs/1812.03079}, 
 }
 
 @article{chen_end--end_2024,
@@ -7430,15 +7508,16 @@ abstract = {The field of dataset shift has received a growing amount of interest
 }
 
 @article{tampuu_survey_2022,
-  author  = {Tampuu, Ardi and Matiisen, Tambet and Semikin, Maksym and Fishman, Dmytro and Muhammad, Naveed},
-  title   = {A Survey of End-to-End Driving: Architectures and Training Methods},
-  journal = {IEEE Transactions on Neural Networks and Learning Systems},
-  volume  = {33},
-  number  = {4},
-  pages   = {1364--1384},
-  year    = {2022},
-  doi     = {10.1109/TNNLS.2020.3043505}
-}
+  author={Tampuu, Ardi and Matiisen, Tambet and Semikin, Maksym and Fishman, Dmytro and Muhammad, Naveed},
+  journal={IEEE Transactions on Neural Networks and Learning Systems}, 
+  title={A Survey of End-to-End Driving: Architectures and Training Methods}, 
+  year={2022},
+  volume={33},
+  number={4},
+  pages={1364-1384},
+  keywords={Task analysis;Pipelines;Training;Neural networks;Autonomous vehicles;Roads;Automobiles;Autonomous driving;end-to-end;neural networks},
+  doi={10.1109/TNNLS.2020.3043505}}
+
 
 @inproceedings{betts_estimating_2013,
   author    = {Betts, Adam and Sheriffs, Daniel and Sherwood, Timothy and Sherr, Michal},
@@ -7482,3 +7561,4 @@ abstract = {The field of dataset shift has received a growing amount of interest
   year      = {2017},
   doi       = {10.1145/3020078.3021740}
 }
+
